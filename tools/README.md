@@ -36,3 +36,22 @@ python3 tools/build_sprite_atlas.py
 ```
 
 Die fertige Website lädt nur `docs/assets/pokemon-sprites-1.png` und `pokemon-sprites-2.png` vom eigenen Host. Jeder Atlas hat 16 × 8 Zellen mit je 56 × 56 Pixeln. Der erste enthält Arten 1–128, der zweite 129–251; die letzten fünf Zellen bleiben frei. Die indizierten Paletten erhalten sämtliche Originalpixel. Es werden keine Spielerbilder oder ROMs verarbeitet. Beide Editionen verwenden die Gold-Darstellungen.
+
+
+## Fundkarten und PDF-Referenzen
+
+`build_item_maps.py` rekonstruiert 95 Karten aus den originalen `.blk`-Kartengrids, Metatiles, Pixelgrafiken und Tages-/Innenraum-Paletten des festgelegten pokegold-Quellstands. Ein Kartenfeld entspricht 16 × 16 Pixeln. Die Fundmarker werden zur Laufzeit aus den ursprünglichen Objekt-/Versteck-Koordinaten gesetzt; es gibt keine geschätzte Positionierung. Der Café-Mülleimer wird explizit aus `CeladonCafe.asm` bei X 7/Y 1 ergänzt. Personen, bewegliche Objekte und dynamische Veränderungen werden nicht gerendert.
+
+Die Eingabe für `--data` ist JSON `{maps, locations, items}` aus `collectionData`, mit den Gold-Einträgen für `ground` und `hidden`. Beide Editionen verwenden dieselben geprüften Kartengrids. Der Quell-Cache wird nur lokal benötigt:
+
+```sh
+python3 tools/build_item_maps.py --source /tmp/guide-data/pret-source.json --data /tmp/guide-data/map-render-input.json --cache /tmp/guide-map-source
+```
+
+`extract_guide_maps.py` liest das vom Projektinhaber bereitgestellte PDF und erzeugt die in `guide_map_crops.json` definierten Referenzausschnitte. Die Rechteckkoordinaten sind relativ zur PDF-Seite. Es wird keine vollständige Buchseite als Website-Asset übernommen. Benötigt werden PyMuPDF und Pillow:
+
+```sh
+python3 tools/extract_guide_maps.py /pfad/zum/bereitgestellten-guide.pdf
+```
+
+Die ausgeschnittenen PDF-Übersichten sind Referenzen. Marker erscheinen auf den exakten Original-Kartengrids, damit sie auch bei versteckten, im Buch nicht eingezeichneten Fundstellen richtig sitzen.

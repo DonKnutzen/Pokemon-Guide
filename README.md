@@ -12,7 +12,7 @@ Ein mobiler Begleiter für die originalen Game-Boy-Color-Spiele Pokémon Gold un
 4. **„Gefangen“ antippen.** Die Art wandert in deinen Pokédex und verschwindet aus den offenen Fanglisten sämtlicher weiterer Gebiete. Entwicklungen bleiben eigenständig offen. „Rückgängig“ korrigiert einen versehentlichen Fang.
 5. **Ausrüstung aktualisieren.** Noch nicht nutzbare Angel-, VM- und Sonderfänge bleiben unter „Für später merken“ sichtbar. Besuche und Ausrüstung sind unabhängig; der Wechsel eines Gebiets schaltet keine VM frei.
 
-Items stehen im zweiten Tab jedes Gebiets: sichtbare und versteckte Funde, Gesprächsbelohnungen und Baumfunde. Ein Tippen zeigt Voraussetzungen und Fundposition. Läden und bereits erledigte Funde sind eingeklappt. Unter **Rückwege** erscheinen durch neue Ausrüstung erreichbare offene Ziele in besuchten Gebieten.
+Items stehen direkt unter den offenen Pokémon jedes Gebiets: sichtbare und versteckte Funde, Gesprächsbelohnungen und Baumfunde. Sichtbare und versteckte Funde haben Kartenbilder, nummerierte Markierungen und eine Detailansicht. Ein Tippen zeigt das genaue Feld und die Voraussetzungen. Läden und bereits erledigte Funde sind eingeklappt. Unter **Rückwege** erscheinen durch neue Ausrüstung erreichbare offene Ziele in besuchten Gebieten.
 
 Der Pokédex zeigt alle 251 Arten mit editionsabhängigen Fangquellen, Entwicklungen, Zucht und nötigem externen Tausch. Eine Entwicklung wird nicht automatisch als erhalten gewertet, wenn du ihre Vorentwicklung fängst. Pokémon anderer Editionen werden nicht als lokale Wildfänge angeboten.
 
@@ -28,12 +28,12 @@ Vorhandene Story- und Sammelsicherungen bleiben kompatibel. Frühere Story-Häkc
 
 „Neu hier“ bedeutet erstmals wild fangbar in der empfohlenen Gebietsfolge, unabhängig von deinem eigenen Fangstatus. Andere Abstecher können bei anderer Wegwahl früher möglich sein. Der Guide verändert und liest keinen Spielstand.
 
-Pro Edition sind 136 sichtbare Bodenfunde, 87 versteckte Fundstellen, 107 Gesprächs-/Belohnungseinträge und 30 Baumfunde erfasst, dazu Ladenangebote. Zufalls- und Sonderbedingungen stehen in den Details. Die Fundposition ist ein Rasterpunkt mit Norden oben, keine begehbare Spielkarte. Die Daten gelten für Gold und Silber, nicht für Pokémon GO, Kristall oder die Remakes.
+Pro Edition sind 136 sichtbare Bodenfunde, 87 versteckte Fundstellen, 107 Gesprächs-/Belohnungseinträge und 30 Baumfunde erfasst, dazu Ladenangebote. Zufalls- und Sonderbedingungen stehen in den Details. Für sämtliche 223 sichtbaren/versteckten Fundstellen pro Edition werden 95 Original-Kartengrids mit präzisen Feldmarkierungen verwendet. Karten sind nach Gebiet und Stockwerk getrennt, Norden ist oben. Die 2×-Ansicht lässt sich verschieben. Personen, bewegliche Objekte und der aktuelle Spielzustand werden nicht simuliert. Zusätzlich gibt es 73 Kartenausschnitte aus der bereitgestellten PDF für 89 Gebiete als Referenz; die dynamischen Fundmarkierungen stehen auf den rekonstruierten Spielkarten. Die Daten gelten für Gold und Silber, nicht für Pokémon GO, Kristall oder die Remakes.
 
 - Fang- und Funddaten sowie Entwicklungsregeln: [pret/pokegold](https://github.com/pret/pokegold/tree/fc702b6d922aecce274782d68bba8639936a1182).
 - Deutsche Namen: [PokéAPI](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv), ergänzt um historische Itemnamen.
 - **Alle 251 Bilder werden lokal mitgeliefert:** originale Gold-Pixelbilder aus [PokeAPI/sprites](https://github.com/PokeAPI/sprites/tree/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/versions/generation-ii/gold/transparent), in zwei kompakten Bilddateien. Die Gold-Darstellungen werden für beide Editionen verwendet. Zur Laufzeit gibt es keine fremden Bildabrufe.
-- Die früheren Story-Daten basieren auf der vom Projektinhaber bereitgestellten Nintendo-Power-Komplettlösung **Pokémon Gold & Silver (2000)**. PDF und Scans sind nicht im Repository enthalten.
+- Die früheren Story-Daten basieren auf der vom Projektinhaber bereitgestellten Nintendo-Power-Komplettlösung **Pokémon Gold & Silver (2000)**. Das vollständige PDF wird nicht veröffentlicht; enthalten sind ausschließlich die ausgewählten Kartenausschnitte.
 
 Zugangsvoraussetzungen wurden für die empfohlene Reise kuratiert; Sonderfälle können zusätzliche Prüfung benötigen. Historische Verteilungen über externe Geräte und vollständige Attackentabellen sind nicht enthalten.
 
@@ -60,6 +60,9 @@ Tests benötigen Node.js ab Version 20, ohne Paketinstallation.
 - `docs/data/gold-silver.js`: ältere Story-Daten zur Fortschrittskompatibilität.
 - `docs/assets/pokemon-sprites-{1,2}.png`: zwei verlustfreie Bildatlanten mit je 16 × 8 Feldern à 56 × 56 Pixel; Arten 1–128 und 129–251.
 - `tools/`: Datenpflege und Bildatlas-Erzeugung, siehe [tools/README.md](tools/README.md).
+- `docs/assets/maps/`, `docs/data/item-maps.js`: aus Original-Blöcken und Tilesets verlustfrei gerenderte Fundkarten.
+- `docs/assets/guide-maps/`, `docs/data/guide-maps.js`: Kartenausschnitte aus der bereitgestellten PDF, mit Seitenbezügen.
+- `docs/assets/item-map-model.js`: präzise Feldpositionen und stabile Kartennummern.
 - `test/`: Prüfungen für Zugang, Editionen, globale Fangfilter, Entwicklungen und Sicherungen.
 
 Aufgaben-, Gebiets- und Fund-IDs bleiben stabil. Inoffizielles Fanprojekt. Pokémon, Namen und Originalgrafiken gehören den jeweiligen Rechteinhabern.
