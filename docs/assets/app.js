@@ -1,5 +1,7 @@
 import { guide } from '../data/gold-silver.js';
 import { blankProgress, restoreProgress, visibleSteps, chapterProgress, totalProgress, toggleStep, nextChapter, searchChapters, normalize, mergeBackup } from './model.js';
+import {renderCollection,renderCollectionSummary,chapterCollectionLinks} from './collection-view.js';
+import {collectionData} from '../data/collection-data.js';
 
 const STORAGE_KEY = 'pokeguide:progress:' + guide.id + ':v1';
 const main = document.getElementById('main');
@@ -109,6 +111,7 @@ function renderOverview() {
     const stat = node('div', 'stat'), text = node('span'); text.append(node('b', '', label), document.createTextNode(hint)); stat.append(node('strong', '', value), text); stats.append(stat);
   }
   main.append(stats);
+  main.append(renderCollectionSummary(state));
   const resume = node('section', 'continue-card'), resumeCopy = node('div');
   resumeCopy.append(eyebrow(total.percent === 100 ? 'DEINE HAUPTGESCHICHTE IST ABGESCHLOSSEN' : 'DEIN NÄCHSTER HALT'), node('h3', '', next.title), node('p', '', next.summary));
   const resumeLink = link(chapterHref(next), 'continue-link', '→'); resumeLink.setAttribute('aria-label', next.title + ' öffnen'); resume.append(resumeCopy, resumeLink); main.append(resume);
@@ -158,6 +161,7 @@ function renderChapter(chapter) {
   const header = node('header', 'chapter-header');
   header.append(link('#start', 'back-link', '← Zur Reiseübersicht'), eyebrow(region.label + ' / ABSCHNITT ' + numberOf(chapter) + (chapter.optional ? ' · FREIWILLIG' : '')), node('h1', '', chapter.title), node('p', 'chapter-summary', chapter.summary), node('div', 'chapter-english', chapter.english));
   main.append(header);
+  main.append(chapterCollectionLinks(chapter.id));
   const progress = node('section', 'chapter-progress'); const row = node('div', 'row-between'); const value = node('strong'); value.dataset.currentCount = '';
   row.append(node('span', '', chapter.optional ? 'Dein freiwilliges Ziel' : 'Dein Fortschritt in diesem Abschnitt'), value);
   const bar = node('progress'); bar.dataset.currentProgress = ''; bar.setAttribute('aria-label', 'Fortschritt in ' + chapter.title); bar.max = count.total; bar.value = count.done;
@@ -198,6 +202,12 @@ function renderSearch(query) {
 function readRoute() {
   const hash = location.hash.slice(1);
   if (!hash || hash === 'start') return { page: 'start' };
+  if (['dex','items','returns'].includes(hash)) return {page:hash};
+  if (hash === 'collect') return {page:'collect',id:state.collection[state.edition].lastLocation};
+  if (hash.startsWith('collect/')) {
+    const id=hash.slice(8);
+    if(collectionData.locations.some(loc=>loc.id===id)) return {page:'collect',id};
+  }
   if (hash.startsWith('guide/')) {
     try { const id = decodeURIComponent(hash.slice(6)); if (guide.chapters.some(chapter => chapter.id === id)) return { page: 'guide', id }; }
     catch { /* An invalid URL is handled by returning to the overview. */ }
@@ -210,7 +220,16 @@ function render() {
   for (const button of document.querySelectorAll('.edition[data-edition]')) button.setAttribute('aria-pressed', String(button.dataset.edition === state.edition));
   document.getElementById('edition-indicator').textContent = state.edition === 'gold' ? 'GOLD EDITION' : 'SILBER EDITION';
   main.replaceChildren();
-  if (search.value.trim()) { renderSearch(search.value.trim()); document.title = 'Suche · PokéGuide'; }
+  for(const a of document.querySelectorAll('[data-mode]')){
+    const selected=a.dataset.mode===route.page||a.dataset.mode==='story'&&['start','guide'].includes(route.page);
+    if(selected)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    if(a.dataset.mode==='collect')a.href='#collect/'+state.collection[state.edition].lastLocation;
+  }
+  if (['collect','dex','items','returns'].includes(route.page)) {
+    renderCollection(main,route,state,()=>{persist();render();},search.value.trim());
+    document.title=({collect:'Sammelreise',dex:'Pokédex',items:'Items',returns:'Rückkehrziele'})[route.page]+' · PokéGuide';
+  }
+  else if (search.value.trim()) { renderSearch(search.value.trim()); document.title = 'Suche · PokéGuide'; }
   else if (route.page === 'guide') {
     const chapter = guide.chapters.find(chapter => chapter.id === route.id); renderChapter(chapter); document.title = chapter.title + ' · PokéGuide';
   } else { renderOverview(); document.title = 'PokéGuide · Gold & Silber'; }
@@ -229,6 +248,7 @@ document.addEventListener('keydown', event => {
 });
 window.addEventListener('hashchange', () => {
   search.value = ''; route = readRoute();
+  if (route.page === 'collect') {state.collection[state.edition].lastLocation=route.id;persist();}
   if (route.page === 'guide') { state.lastChapter[state.edition] = route.id; persist(); }
   render(); main.focus();
   if (matchMedia('(max-width: 850px)').matches) document.querySelector('.chapter-disclosure').open = false;
@@ -261,6 +281,7 @@ backupFile.addEventListener('change', async () => {
 });
 
 route = readRoute();
+if (route.page === 'collect') { state.collection[state.edition].lastLocation = route.id; persist(); }
 if (route.page === 'guide') { state.lastChapter[state.edition] = route.id; persist(); }
 if (matchMedia('(max-width: 850px)').matches) document.querySelector('.chapter-disclosure').open = false;
 renderNavigation(); render();

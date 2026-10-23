@@ -1,3 +1,6 @@
+import { collectionData } from '../data/collection-data.js';
+import { emptyCollection, restoreCollections, mergeCollections } from './collection-model.js';
+
 export const editions = ['gold', 'silver'];
 
 export function visibleSteps(chapter, edition) {
@@ -5,13 +8,14 @@ export function visibleSteps(chapter, edition) {
 }
 
 export function blankProgress(guide) {
-  return { version: 1, guideId: guide.id, edition: 'gold', completed: { gold: [], silver: [] }, lastChapter: { gold: guide.chapters[0].id, silver: guide.chapters[0].id } };
+  return { version: 1, guideId: guide.id, edition: 'gold', completed: { gold: [], silver: [] }, lastChapter: { gold: guide.chapters[0].id, silver: guide.chapters[0].id }, collection: {gold:emptyCollection(),silver:emptyCollection()} };
 }
 
 export function restoreProgress(value, guide) {
   const state = blankProgress(guide);
   if (!value || typeof value !== 'object' || value.version !== 1 || value.guideId !== guide.id) return state;
   if (editions.includes(value.edition)) state.edition = value.edition;
+  state.collection = restoreCollections(value.collection, collectionData);
   for (const edition of editions) {
     const allowed = new Set(guide.chapters.flatMap(chapter => visibleSteps(chapter, edition)).map(step => step.id));
     if (Array.isArray(value.completed?.[edition])) state.completed[edition] = [...new Set(value.completed[edition].filter(id => typeof id === 'string' && allowed.has(id)))];
@@ -70,5 +74,6 @@ export function mergeBackup(current, value, guide) {
   const backup = restoreProgress(value, guide);
   const merged = restoreProgress(current, guide);
   for (const edition of editions) merged.completed[edition] = [...new Set([...merged.completed[edition], ...backup.completed[edition]])];
+  merged.collection = mergeCollections(current.collection,value.collection,collectionData);
   return merged;
 }

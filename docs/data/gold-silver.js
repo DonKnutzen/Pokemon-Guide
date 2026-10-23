@@ -7,10 +7,10 @@ export const guide = {
   id: 'gold-silver',
   title: 'Gold & Silber',
   platform: 'Game Boy Color',
-  scope: 'Story-Guide für die Originalspiele Pokémon Gold und Silber.',
+  scope: 'Story- und Sammelguide für die Originalspiele Pokémon Gold und Silber.',
   source: {
     title: 'Nintendo Power · Pokémon Gold & Silver · 2000',
-    note: 'Eigenständig formulierte deutsche Schrittfolgen auf Grundlage der bereitgestellten Vorlage. Die Seitenangaben zählen die PDF-Seiten ab 1. Der Guide konzentriert sich auf den Spielverlauf; er enthält noch keine vollständigen Fundort-, Attacken- oder Itemtabellen.'
+    note: 'Eigenständig formulierte deutsche Schrittfolgen auf Grundlage der bereitgestellten Vorlage. Die Seitenangaben zählen die PDF-Seiten ab 1. Die Sammelreise ergänzt editionsabhängige Fangorte und Item-Funde aus den originalen Spieldaten; Quellen und Vergleichsregel stehen dort. Attackentabellen und begehbare Raumkarten sind nicht enthalten.'
   },
   regions: [
     { id: 'johto', label: 'Johto', subtitle: 'Die ersten acht Orden' },
