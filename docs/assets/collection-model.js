@@ -4,7 +4,7 @@ export const timeNames = {all:'Jede Tageszeit',morn:'Morgens (04–10 Uhr)',day:
 export const kindNames = {ground:'Sichtbarer Fund',hidden:'Versteckt',person:'Gespräch / Belohnung',tree:'Beeren / Aprikokos',shop:'Kauf / Münzpreis'};
 export const dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 
-export function emptyCollection(){return {caught:[],items:[],visited:[],unlocks:[],lastLocation:'route_29',starter:0,time:'all',weekday:'all'};}
+export function emptyCollection(){return {caught:[],catchLocations:{},items:[],visited:[],unlocks:[],lastLocation:'new_bark_town',starter:0,time:'all',weekday:'all'};}
 export function restoreCollections(value,data){
   const output={};
   for(const edition of ['gold','silver']){
@@ -14,6 +14,7 @@ export function restoreCollections(value,data){
       const locationIds=new Set(data.locations.map(x=>x.id));
       const flagIds=new Set(data.flags.map(x=>x.id));
       clean.caught=[...new Set((Array.isArray(input.caught)?input.caught:[]).filter(n=>Number.isInteger(n)&&n>=1&&n<=251))];
+      for(const id of clean.caught)if(locationIds.has(input.catchLocations?.[id]))clean.catchLocations[id]=input.catchLocations[id];
       for(const [key,valid] of [['items',itemIds],['visited',locationIds],['unlocks',flagIds]])clean[key]=[...new Set((Array.isArray(input[key])?input[key]:[]).filter(x=>valid.has(x)))];
       if(locationIds.has(input.lastLocation))clean.lastLocation=input.lastLocation;
       if([152,155,158].includes(input.starter))clean.starter=input.starter;
@@ -28,6 +29,7 @@ export function mergeCollections(current,incoming,data){
   const a=restoreCollections(current,data),b=restoreCollections(incoming,data);
   for(const ed of ['gold','silver'])for(const key of ['caught','items','visited','unlocks'])a[ed][key]=[...new Set([...a[ed][key],...b[ed][key]])];
   for(const ed of ['gold','silver'])if(!a[ed].starter)a[ed].starter=b[ed].starter;
+  for(const ed of ['gold','silver'])a[ed].catchLocations={...b[ed].catchLocations,...a[ed].catchLocations};
   return a;
 }
 export function unlockedFlags(data,state){

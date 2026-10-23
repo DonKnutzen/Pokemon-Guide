@@ -1,287 +1,156 @@
-import { guide } from '../data/gold-silver.js';
-import { blankProgress, restoreProgress, visibleSteps, chapterProgress, totalProgress, toggleStep, nextChapter, searchChapters, normalize, mergeBackup } from './model.js';
-import {renderCollection,renderCollectionSummary,chapterCollectionLinks} from './collection-view.js';
-import {collectionData} from '../data/collection-data.js';
+import {guide} from '../data/gold-silver.js';
+import {collectionData as data} from '../data/collection-data.js';
+import {blankProgress,restoreProgress,mergeBackup,normalize} from './model.js?v=3';
+import {methodNames,timeNames,kindNames,dayNames,unlockedFlags,availability,returnTargets,evolutionText} from './collection-model.js?v=3';
+import {routeCatches,setCaught,acquisition,routeItemGroups} from './journey-model.js?v=3';
 
-const STORAGE_KEY = 'pokeguide:progress:' + guide.id + ':v1';
-const main = document.getElementById('main');
-const search = document.getElementById('search');
-let state = blankProgress(guide);
-let route = { page: 'start' };
+const KEY='pokeguide:progress:'+guide.id+':v1';
+const $=selector=>document.querySelector(selector);
+const main=$('#main'),sheet=$('#sheet');
+const el=(tag,cls='',text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
+const icons={
+ compass:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M16 8l-3 5-5 3 3-5 5-3Z',
+ ball:'M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0Zm0 0h6m6 0h6m-12 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z',
+ back:'M9 6 3 12l6 6m-6-6h12a6 6 0 0 1 0 12',bag:'M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M6 7h12l2 14H4L6 7Zm3 7h6v5H9v-5Z',
+ arrow:'M5 12h14m-6-6 6 6-6 6',left:'M19 12H5m6-6-6 6 6 6',check:'M5 12l4 4L19 6',close:'m6 6 12 12M6 18 18 6',search:'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 6 6',
+ map:'m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2V5Zm6-2v16m6-14v16',gear:'M12 4v3m0 10v3M4 12h3m10 0h3M6 6l2 2m8 8 2 2M6 18l2-2m8-8 2-2M8 12a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z',
+ clock:'M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0Zm9-5v5l3 2',lock:'M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5V10Zm7 4v3',
+ info:'M12 7v.1M12 11v6M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0Z',leaf:'M4 20C1 8 7 4 21 3c0 13-4 19-15 15M4 20 16 8',chat:'M3 4h18v13H9l-6 4V4Z',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Zm7 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z',
+ rod:'m5 21 6-14 9-4M11 7l7 5v5a3 3 0 0 1-6 0',water:'M12 3S5 11 5 15a7 7 0 0 0 14 0c0-4-7-12-7-12Z',download:'M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4',upload:'M12 16V4m-5 5 5-5 5 5M4 17v4h16v-4',sun:'M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1M7 12a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z'
+};
+function icon(name){const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),p=document.createElementNS(ns,'path');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.classList.add('icon');for(const [k,v]of Object.entries({fill:'none',stroke:'currentColor','stroke-width':'1.7','stroke-linecap':'round','stroke-linejoin':'round'}))svg.setAttribute(k,v);p.setAttribute('d',icons[name]||icons.ball);svg.append(p);return svg;}
+function button(text,cls='',run,ico){const b=el('button',cls);b.type='button';if(ico)b.append(icon(ico));if(text)b.append(el('span','',text));if(run)b.addEventListener('click',run);return b;}
+function link(href,text,cls='',ico){const a=el('a',cls);a.href=href;if(ico)a.append(icon(ico));a.append(el('span','',text));return a;}
+function sprite(id,cls=''){const index=(id-1)%128,s=el('span','sprite '+(id>128?'sprite-second ':'')+cls);s.style.backgroundPosition=(index%16/15*100)+'% '+(Math.floor(index/16)/7*100)+'%';s.setAttribute('role','img');s.setAttribute('aria-label',data.species[id].name);return s;}
+const place=id=>data.locations.find(l=>l.id===id);
+const species=id=>data.species[id];
+const flagsBy=new Map(data.flags.map(f=>[f.id,f]));
+const flagName=id=>flagsBy.get(id)?.label||id;
+const editionName=()=>state.edition==='gold'?'Gold':'Silber';
+let state=blankProgress(guide);
+try{const raw=localStorage.getItem(KEY);if(raw)state=restoreProgress(JSON.parse(raw),guide);}catch{/* The UI reports storage failures when saving. */}
+let route={page:'route',id:state.collection[state.edition].lastLocation};
+let routeTab='pokemon',dexFilter='missing',dexQuery='',toastTimer,saveError=false;
+const co=()=>state.collection[state.edition];
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));saveError=false;return true;}catch{saveError=true;return false;}}
+function notify(text,undo){const box=$('#toast');clearTimeout(toastTimer);box.replaceChildren(el('span','',text));if(undo)box.append(button('Rückgängig','toast-undo',()=>{undo();box.hidden=true;}));box.hidden=false;toastTimer=setTimeout(()=>{box.hidden=true;},undo?8000:4500);}
+function save(){persist();render();if(saveError)notify('Speichern nicht möglich. Bitte eine Sicherung herunterladen.');}
+function capture(id,checked,locationId){const ed=state.edition,oldLocation=co().catchLocations?.[id],was=co().caught.includes(id);setCaught(state,id,checked,locationId);save();notify(checked?species(id).name+' ist in deinem Pokédex.':species(id).name+' ist wieder offen.',()=>{const current=state.edition;state.edition=ed;setCaught(state,id,was,oldLocation);state.edition=current;save();});}
+function navigate(id){routeTab='pokemon';const c=co();c.lastLocation=id;c.visited=[...new Set([...c.visited,id])];persist();if(location.hash==='#route/'+id){route={page:'route',id};render();window.scrollTo({top:0});}else location.hash='route/'+id;}
+function readRoute(){const hash=location.hash.slice(1);if(['dex','returns','bag'].includes(hash))return {page:hash};if(hash==='items')routeTab='items';if(hash.startsWith('route/')||hash.startsWith('collect/')){const id=hash.split('/')[1];if(place(id))return {page:'route',id};}return {page:'route',id:co().lastLocation};}
+function openSheet(title,build,cls=''){if(sheet.open)sheet.close();sheet.className='sheet '+cls;sheet.replaceChildren();const head=el('header','sheet-header');head.append(el('h2','',title),button('','icon-button',()=>sheet.close(),'close'));head.lastChild.setAttribute('aria-label','Schließen');const body=el('div','sheet-body');head.firstChild.id='sheet-title';sheet.setAttribute('aria-labelledby','sheet-title');sheet.append(head,body);build(body);sheet.showModal();}
+sheet.addEventListener('click',e=>{if(e.target===sheet){const r=sheet.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)sheet.close();}});
+function field(label,id,values,value,change){const l=el('label','form-field',label),s=el('select');s.id=id;for(const [v,name]of values){const o=el('option','',name);o.value=v;s.append(o);}s.value=String(value);s.addEventListener('change',()=>change(s.value));l.append(s);return l;}
+function smallSearch(placeholder,onInput,value=''){const l=el('label','search-field');l.append(icon('search'));const input=el('input');input.type='search';input.placeholder=placeholder;input.setAttribute('aria-label',placeholder);input.value=value;input.addEventListener('input',()=>onInput(input.value));l.append(input);return l;}
+function checkSetting(f,parent){const label=el('label','setting-check'),input=el('input');input.type='checkbox';input.checked=unlockedFlags(data,state).has(f.id);input.id='gear-'+f.id;const inherited=unlockedFlags(data,{...state,collection:{...state.collection,[state.edition]:{...co(),unlocks:[]}}}).has(f.id);input.disabled=inherited;input.addEventListener('change',()=>{co().unlocks=input.checked?[...new Set([...co().unlocks,f.id])]:co().unlocks.filter(x=>x!==f.id);persist();render();});label.append(input,el('span','',f.label+(inherited?' · bereits bestätigt':'')));parent.append(label);}
+function openGear(){openSheet('Was hast du schon?',body=>{
+ body.append(el('p','muted','Nur bestätigen, was du wirklich besitzt. VMs erst einschalten, wenn du sie draußen einsetzen kannst.'));
+ const methods=['balls','oldrod','goodrod','superrod','headbutt','smash','cut','surf','strength','whirl','waterfall'];
+ const grid=el('div','gear-grid');for(const id of methods)checkSetting(flagsBy.get(id),grid);body.append(grid);
+ const d=el('details','plain-details');d.append(el('summary','','Orden & besondere Ereignisse'));const more=el('div','event-list');for(const f of data.flags.filter(f=>!methods.includes(f.id)))checkSetting(f,more);d.append(more);body.append(d,button('Fertig','primary full',()=>sheet.close(),'check'));
+ });}
+function openTime(){openSheet('Zeit in deinem Spiel',body=>{
+ body.append(el('p','muted','Die Uhr deines Spielstands zählt. „Alle Zeiten“ zeigt auch Fänge, für die du nachts oder an einem anderen Tag zurückkommen kannst.'));
+ body.append(field('Tageszeit','game-time',[['all','Alle Zeiten'],['morn','Morgens · 04–10 Uhr'],['day','Tagsüber · 10–18 Uhr'],['nite','Nachts · 18–04 Uhr']],co().time,v=>{co().time=v;save();}));
+ body.append(field('Wochentag','game-weekday',[['all','Alle Tage'],...dayNames.map((n,i)=>[i,n])],co().weekday,v=>{co().weekday=v==='all'?'all':Number(v);save();}));
+ body.append(button('Übernehmen','primary full',()=>sheet.close(),'check'));
+ });}
+function openEdition(){openSheet('Deine Edition',body=>{
+ body.append(el('p','muted','Gold und Silber haben unterschiedliche Fänge. Dein Pokédex und deine Ausrüstung werden für jede Edition getrennt gespeichert.'));
+ for(const [ed,title]of [['gold','Gold'],['silver','Silber']]){const b=button(title+' · '+state.collection[ed].caught.length+' erhalten','edition-choice '+(state.edition===ed?'selected':''),()=>{state.edition=ed;route={page:route.page,id:co().lastLocation};persist();sheet.close();if(route.page==='route'){history.replaceState(null,'','#route/'+co().lastLocation);}render();},ed==='gold'?'sun':'ball');body.append(b);}
+ });}
+function routePicker(){openSheet('Wo bist du gerade?',body=>{
+ const list=el('div','route-picker-list');function fill(query=''){list.replaceChildren();let region='';for(const [index,l]of data.locations.entries()){if(query&&!normalize(l.name).includes(normalize(query)))continue;if(region!==l.region){region=l.region;list.append(el('h3','picker-region',region==='johto'?'Johto & Pokémon-Liga':'Kanto'));}const b=button('','picker-row '+(co().lastLocation===l.id?'current':''),()=>{sheet.close();navigate(l.id);});b.append(el('span','route-number',String(index+1).padStart(2,'0')),el('span','',l.name));if(co().lastLocation===l.id)b.append(el('span','here-tag','HIER'));else if(co().visited.includes(l.id))b.append(icon('check'));list.append(b);}}
+ body.append(smallSearch('Route oder Ort suchen …',fill),list);fill();
+ },'route-picker');}
+function shortReason(entry){const status=availability(entry,unlockedFlags(data,state),co());if(!status.starter)return 'Andere Starterwahl · Tausch nötig';if(status.missing.length)return status.missing.map(flagName).join(' · ');if(!status.weekday)return entry.weekdays.map(i=>dayNames[i]).join(' / ');if(!status.clock)return timeNames[entry.time];return entry.special||'';}
+const compactTime={all:'Alle Zeiten',morn:'Morgens',day:'Tagsüber',nite:'Nachts',mornday:'Morgens / tagsüber'};
+const compactMethod={grass:'Gras / Höhle',surf:'Surfen',oldrod:'Angel',goodrod:'Profiangel',superrod:'Superangel',headbutt:'Kopfnuss',smash:'Zertrümmerer',contest:'Käferturnier',swarm:'Schwarm',static:'Einmalige Begegnung',starter:'Dein Starter',gift:'Geschenk',egg:'Ei',prize:'Spielhalle','npc-trade':'Tausch',roaming:'Wandert durch Johto'};
+function methodSummary(entries){const methods=[...new Set(entries.map(e=>compactMethod[e.method]))];return methods.join(' · ');}
+function clockSummary(entries){const times=new Set(entries.map(e=>e.time));if(times.has('all')||['morn','day','nite'].every(t=>times.has(t)))return 'Alle Zeiten';if(times.has('morn')&&times.has('day'))return times.has('nite')?'Alle Zeiten':'Morgens / tagsüber';return [...times].map(t=>compactTime[t]).join(' / ');}
+function levelSummary(entries){const levels=entries.flatMap(e=>e.levels);return levels.length?'Lv. '+(Math.min(...levels)===Math.max(...levels)?Math.min(...levels):Math.min(...levels)+'–'+Math.max(...levels)):'';}
+function speciesCard(row,{later=false,dex=false}={}){
+ const sp=species(row.id),card=el('article','mon-card'+(later?' is-later':''));card.dataset.species=row.id;
+ const top=el('div','mon-top');top.append(el('span','dex-number','#'+String(row.id).padStart(3,'0')));if(!dex&&row.newWild)top.append(el('span','new-tag','NEU HIER'));else if(later)top.append(icon('lock'));card.append(top);
+ const open=button('','mon-open',()=>speciesDetails(row.id,route.page==='route'?route.id:null));open.setAttribute('aria-label',sp.name+' · Fangdetails');open.append(sprite(row.id),el('strong','mon-name',sp.name));card.append(open);
+ if(dex){const source=acquisition(data,state.edition,row.id);card.append(el('p','mon-method',source.label));}
+ else{const entries=row.available?.map(s=>s.entry)||row.entries;card.append(el('p','mon-method',methodSummary(entries.length?entries:row.entries)),el('p','mon-time',later?shortReason(row.best):[clockSummary(entries),levelSummary(entries)].filter(Boolean).join(' · ')));}
+ const label=el('label','catch-control'+(co().caught.includes(row.id)?' is-caught':'')),input=el('input');input.type='checkbox';input.checked=co().caught.includes(row.id);input.setAttribute('aria-label',sp.name+' gefangen / erhalten');input.addEventListener('change',()=>capture(row.id,input.checked,route.page==='route'?route.id:undefined));label.append(input,el('span','catch-symbol',input.checked?'✓':'+'),el('span','',input.checked?'Im Pokédex':'Gefangen'));card.append(label);return card;
+}
+function speciesDetails(id,locationId){const sp=species(id);openSheet(sp.name,body=>{
+ const hero=el('div','species-hero');hero.append(sprite(id),el('span','dex-number','#'+String(id).padStart(3,'0')),el('h3','',sp.name));body.append(hero);
+ const caught=co().caught.includes(id),from=co().catchLocations?.[id];if(caught)body.append(el('p','success-line','✓ In deinem Pokédex'+(from?' · '+place(from).name:'')));
+ const catchAction=button(caught?'Wieder als fehlend markieren':'Als gefangen / erhalten merken',caught?'secondary full':'primary full',()=>{sheet.close();capture(id,!caught,locationId||undefined);},caught?'back':'check');catchAction.classList.add('detail-catch-action');body.append(catchAction);
+ const own=data.encounters.filter(e=>e.edition===state.edition&&e.species===id&&(locationId?e.location===locationId:true)).sort((a,b)=>a.stage-b.stage);
+ if(!locationId){
+  const acq=acquisition(data,state.edition,id);if(!own.length)body.append(el('p','notice',acq.label+'.'));
+  for(const evo of sp.evolutions){const p=el('p','evolution-line',evolutionText(evo,data));p.append(button(species(evo.from).name+' ansehen','text-button',()=>speciesDetails(evo.from,null)));body.append(p);}
+  if(sp.breedFrom)body.append(el('p','notice','In der Pension züchten: '+sp.breedFrom.map(n=>species(n).name).join(' / ')+' mit einem passenden Partner, z. B. Ditto. Ei ausbrüten.'));
+  if(sp.external)body.append(el('p','notice',sp.external));
+  if(acq.kind==='starter')body.append(el('p','notice','Du wählst nur einen Starter. Die übrigen Starter musst du tauschen.'));
+ }
+ function sources(entries,parent){const seen=new Set();for(const entry of entries){
+  const key=[entry.map,entry.method,entry.time,entry.chance,(entry.levels||[]).join(),entry.note].join('|');if(seen.has(key))continue;seen.add(key);
+  const row=el('div','source-row'),status=availability(entry,unlockedFlags(data,state),co());row.append(el('strong','',methodNames[entry.method]),el('span','',data.maps[entry.map].label),el('small','',[timeNames[entry.time],levelSummary([entry]),entry.chance?'ca. '+entry.chance+' %':'',entry.weekdays?.map(i=>dayNames[i]).join(' / ')].filter(Boolean).join(' · ')));
+  const reason=shortReason(entry);if(!status.available&&reason)row.append(el('span','condition-line',reason));if(entry.note)row.append(el('p','muted',entry.note));parent.append(row);
+ }}
+ if(own.length){body.append(el('h3','sheet-section-title',locationId?'Hier bekommst du '+sp.name:'Fangorte in '+editionName()));
+  if(locationId)sources(own,body);
+  else{const grouped=new Map();for(const e of own){if(!grouped.has(e.location))grouped.set(e.location,[]);grouped.get(e.location).push(e);}for(const [area,entries]of grouped){const d=el('details','location-sources');d.append(el('summary','',place(area).name+' · '+methodSummary(entries)));const rows=el('div');sources(entries,rows);rows.append(button('Gebiet öffnen','text-button',()=>{sheet.close();navigate(area);},'arrow'));d.append(rows);body.append(d);}}
+ }
+ if(locationId)body.append(button('Alle Fangorte & Entwicklung','secondary full',()=>speciesDetails(id,null),'compass'));
+ });}
 
-function node(tag, className = '', text) {
-  const el = document.createElement(tag);
-  if (className) el.className = className;
-  if (text !== undefined) el.textContent = text;
-  return el;
+function heading(title,count,subtitle){const h=el('div','section-head'),line=el('div','section-title');line.append(el('h2','',title));if(count!==undefined)line.append(el('span','count-badge',String(count)));h.append(line);if(subtitle)h.append(el('p','muted',subtitle));return h;}
+function emptyState(title,text,ico='check'){const box=el('div','empty-state');box.append(icon(ico),el('h3','',title),el('p','muted',text));return box;}
+function caughtStrip(rows){const d=el('details','caught-details');d.append(el('summary','','Schon im Pokédex · '+rows.length));const wrap=el('div','caught-list');for(const row of rows){const b=button('','caught-mini',()=>speciesDetails(row.id,route.id));b.append(sprite(row.id),el('span','',species(row.id).name),icon('check'));wrap.append(b);}d.append(wrap);return d;}
+function starterPicker(parent){const box=el('section','starter-panel');box.append(el('h2','','Wer begleitet dich?'),el('p','muted','Wähle deinen Starter. Er kommt direkt in deinen Pokédex.'));const grid=el('div','starter-grid');for(const id of [152,155,158]){const b=button('','starter-choice '+(co().starter===id?'selected':''),()=>{co().starter=id;setCaught(state,id,true,'new_bark_town');save();notify(species(id).name+' begleitet dich.');});b.append(sprite(id),el('strong','',species(id).name));grid.append(b);}box.append(grid);parent.append(box);}
+function renderRoute(){
+ const p=place(route.id)||place(co().lastLocation);route.id=p.id;const index=data.locations.indexOf(p),groups=routeCatches(data,state,p.id),items=routeItemGroups(data,state,p.id),previous=data.locations[index-1],next=data.locations[index+1];
+ const hero=el('header','route-hero');const kicker=el('div','route-kicker');kicker.append(el('span','',p.region==='johto'?'JOHTO':'KANTO'),el('span','route-step',String(index+1).padStart(2,'0')+' / '+data.locations.length));hero.append(kicker);
+ const title=el('div','route-title');const changePlace=button('Gebiet wechseln','change-place',routePicker,'map');changePlace.setAttribute('aria-label','Gebiet wechseln');title.append(el('h1','',p.name),changePlace);hero.append(title);
+ const trail=el('div','route-trail');if(previous)trail.append(button(previous.name,'trail-prev',()=>navigate(previous.id),'left'));trail.append(el('span','current-dot','DU BIST HIER'));if(next)trail.append(button(next.name,'trail-next',()=>navigate(next.id),'arrow'));hero.append(trail);main.append(hero);
+ const tools=el('div','route-tools');const flags=unlockedFlags(data,state),methodCount=['oldrod','goodrod','superrod','headbutt','smash','cut','surf','strength','whirl','waterfall'].filter(id=>flags.has(id)).length;
+ tools.append(button('Ausrüstung'+(methodCount?' · '+methodCount:''),'tool-pill',openGear,'bag'),button(co().time==='all'?'Alle Zeiten':compactTime[co().time],'tool-pill',openTime,'clock'));main.append(tools);
+ const tabs=el('div','route-tabs');tabs.setAttribute('role','group');tabs.setAttribute('aria-label','Inhalt im Gebiet');for(const [key,label,count]of [['pokemon','Pokémon',groups.now.length+groups.later.length],['items','Items',items.now.length+items.later.length]]){const b=button(label,'route-tab '+(routeTab===key?'active':''),()=>{routeTab=key;render();},key==='pokemon'?'ball':'bag');b.setAttribute('aria-pressed',String(routeTab===key));b.append(el('span','tab-count',String(count)));tabs.append(b);}main.append(tabs);
+ if(routeTab==='pokemon'){
+ if(p.id==='new_bark_town')starterPicker(main);
+ main.append(heading('Jetzt für dich fangbar',groups.now.length,'Nur Arten, die dir noch fehlen.'));
+ if(groups.now.length){const grid=el('div','mon-grid');for(const row of groups.now)grid.append(speciesCard(row));main.append(grid);}else if(groups.caught.length&&!groups.later.length)main.append(emptyState('Hier bist du komplett.','Alle erfassten Arten dieses Gebiets sind in deinem Pokédex.'));
+ else main.append(emptyState('Gerade keine offenen Fänge.',groups.later.length?'Unten siehst du, was mit anderer Ausrüstung oder Spielzeit möglich wird.':'Hier gibt es keine direkten Fänge für deine Edition.','compass'));
+ if(!flags.has('balls')&&p.id!=='new_bark_town'){const n=el('div','gear-hint');n.append(icon('ball'),el('span','','Schon Pokébälle vom Assistenten erhalten?'),button('Bestätigen','text-button',()=>{co().unlocks=[...new Set([...co().unlocks,'balls'])];save();},'check'));main.append(n);}
+ if(groups.later.length){const later=el('section','later-section');later.append(heading('Für später merken',groups.later.length,'Noch eine Angel, VM oder andere Spielzeit nötig.'));const grid=el('div','mon-grid');for(const row of groups.later)grid.append(speciesCard(row,{later:true}));later.append(grid);main.append(later);}
+ if(groups.caught.length)main.append(caughtStrip(groups.caught));
+ }else renderRouteItems(items);
+ const bottom=el('div','next-area');if(next){bottom.append(el('div','','ALS NÄCHSTES'),button(next.name,'next-button',()=>navigate(next.id),'arrow'));}else bottom.append(el('p','muted','Du bist am Ende der empfohlenen Gebietsfolge. Offene Fänge findest du im Pokédex.'));main.append(bottom);
+ main.append(el('p','route-footnote','Die Gebietsfolge ist eine empfohlene Reiseroute. Abstecher können auch früher möglich sein.'));
 }
-function link(href, className, text) {
-  const el = node('a', className, text); el.href = href; return el;
+function itemDirection(item){if(item.x===undefined)return '';const m=data.maps[item.map],x=item.x<m.size[0]/3?'Westen':item.x>m.size[0]*2/3?'Osten':'Mitte',y=item.y<m.size[1]/3?'Norden':item.y>m.size[1]*2/3?'Süden':'Mitte';return [y,x].filter((v,i,a)=>i===0||v!==a[0]).join(' / ');}
+function itemRows(items,parent){const list=el('div','item-list');for(const item of items){const row=el('article','item-row'),ico={ground:'ball',hidden:'eye',person:'chat',tree:'leaf',shop:'bag'}[item.kind];const detail=button('','item-detail-button',()=>itemDetails(item));const symbol=el('span','item-symbol '+item.kind);symbol.append(icon(ico));const text=el('span','item-row-text');text.append(el('strong','',item.name),el('small','',[kindNames[item.kind],itemDirection(item)].filter(Boolean).join(' · ')));detail.append(symbol,text);row.append(detail);const label=el('label','item-catch'),input=el('input');input.type='checkbox';input.checked=co().items.includes(item.id);input.setAttribute('aria-label',item.name+' eingesammelt');input.addEventListener('change',()=>{const checked=input.checked;co().items=checked?[...new Set([...co().items,item.id])]:co().items.filter(x=>x!==item.id);save();notify(item.name+(checked?' eingesammelt.':' ist wieder offen.'));});label.append(input,el('span','',input.checked?'✓':'+'));row.append(label);list.append(row);}parent.append(list);}
+function renderRouteItems(groups){main.append(heading('Hier mitnehmen',groups.now.length,'Tippe einen Fund an für Position & Bedingungen.'));if(groups.now.length)itemRows(groups.now,main);else main.append(emptyState('Gerade keine offenen Funde.','Bereits eingesammelte und spätere Funde stehen darunter.','bag'));if(groups.later.length){const s=el('section','later-section');s.append(heading('Später erreichbar',groups.later.length));itemRows(groups.later,s);main.append(s);}for(const [key,title]of [['done','Schon eingesammelt'],['shops','Läden & wiederholbare Käufe']])if(groups[key].length){const d=el('details','plain-details');d.append(el('summary','',title+' · '+groups[key].length));itemRows(groups[key],d);main.append(d);}}
+function itemDetails(item){openSheet(item.name,body=>{const status=availability(item,unlockedFlags(data,state),co());body.append(el('span','source-tag',kindNames[item.kind]),el('h3','sheet-section-title',data.maps[item.map].label));if(item.note)body.append(el('p','',item.note));if(item.requirements.length)body.append(el('p','notice','Voraussetzungen: '+item.requirements.map(flagName).join(' · ')));if(item.weekdays)body.append(el('p','notice',item.weekdays.map(n=>dayNames[n]).join(' / ')));if(item.time&&item.time!=='all')body.append(el('p','notice',timeNames[item.time]));
+ if(item.x!==undefined){body.append(el('p','',itemDirection(item)+' · Raster X '+item.x+', Y '+item.y));const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),m=data.maps[item.map];svg.classList.add('item-position');svg.setAttribute('viewBox','-2 -2 '+(m.size[0]+4)+' '+(m.size[1]+4));svg.setAttribute('aria-label','Fundposition auf dem Gebietsraster');const rect=document.createElementNS(ns,'rect');for(const [k,v]of Object.entries({x:0,y:0,width:m.size[0],height:m.size[1],fill:'#e8efe4',stroke:'#bdcdb7','stroke-width':.3}))rect.setAttribute(k,v);const point=document.createElementNS(ns,'circle');for(const [k,v]of Object.entries({cx:item.x,cy:item.y,r:Math.max(1,Math.min(...m.size)/20),fill:'#d09234'}))point.setAttribute(k,v);svg.append(rect,point);body.append(svg,el('p','muted','Norden ist oben. Der Punkt zeigt die Fund- oder Personenposition; Wege und Hindernisse sind nicht abgebildet.'));}
+ body.append(el('p',status.available?'success-line':'condition-line',status.available?'Mit deinem bestätigten Stand erreichbar.':'Voraussetzungen oder Spielzeit fehlen noch.'));const checked=co().items.includes(item.id);body.append(button(checked?'Wieder als offen markieren':'Als eingesammelt merken',checked?'secondary full':'primary full',()=>{co().items=checked?co().items.filter(x=>x!==item.id):[...new Set([...co().items,item.id])];sheet.close();save();},'check'));
+ });}
+function renderDex(){const header=el('header','page-header');header.append(el('div','eyebrow','DEINE SAMMLUNG · '+editionName().toUpperCase()),el('h1','','Dein Pokédex.'),el('p','muted',co().caught.length+' von 251 Arten erhalten. Jede Entwicklung zählt einzeln.'));main.append(header);
+ const progress=el('div','dex-progress');progress.append(el('span','',String(co().caught.length)),el('div','','ARTEN IN DEINEM POKÉDEX'));const bar=el('progress');bar.max=251;bar.value=co().caught.length;bar.setAttribute('aria-label','Gesammelte Pokémon');progress.append(bar);main.append(progress);
+ main.append(smallSearch('Pokémon oder Nummer suchen …',query=>{dexQuery=query;fillDex();},dexQuery));const filters=el('div','filter-pills');for(const [key,title]of [['missing','Fehlen noch'],['caught','Gefangen'],['all','Alle 251']]){const b=button(title,'filter-pill '+(dexFilter===key?'active':''),()=>{dexFilter=key;render();});b.setAttribute('aria-pressed',String(dexFilter===key));filters.append(b);}main.append(filters,el('p','dex-note','Fangorte richten sich nach '+editionName()+'. Tausch, Zucht und Entwicklungen stehen jeweils dabei.'));const results=el('div','mon-grid dex-grid');results.id='dex-results';main.append(results);fillDex();}
+function fillDex(){const results=$('#dex-results');if(!results)return;results.replaceChildren();const query=normalize(dexQuery);for(const sp of Object.values(data.species)){const caught=co().caught.includes(sp.id);if(dexFilter==='missing'&&caught||dexFilter==='caught'&&!caught)continue;if(query&&!normalize(sp.name+' '+sp.symbol+' '+String(sp.id).padStart(3,'0')).includes(query))continue;results.append(speciesCard({id:sp.id},{dex:true}));}if(!results.children.length)results.append(emptyState('Keine passenden Pokémon.','Versuche einen anderen Namen oder Filter.','search'));}
+function renderReturns(){const head=el('header','page-header');head.append(el('div','eyebrow','NEUE MÖGLICHKEITEN'),el('h1','','Zurück lohnt sich.'),el('p','muted','Besuchte Gebiete, in denen deine neue Ausrüstung offene Fänge oder Funde erreichbar macht.'));main.append(head,button('Ausrüstung aktualisieren','secondary',openGear,'bag'));
+ const targets=returnTargets(data,state);if(!targets.length)main.append(emptyState('Gerade kein Rückweg offen.','Besuche Gebiete und bestätige neue Angeln oder VMs. Bereits gefangene Arten werden hier ausgeblendet.','compass'));
+ for(const t of targets){const card=el('article','return-card');const line=el('div','return-title');line.append(el('h2','',t.location.name),button('','icon-button',()=>navigate(t.location.id),'arrow'));line.lastChild.setAttribute('aria-label',t.location.name+' öffnen');card.append(line);if(t.pokemon.length){const mons=el('div','return-mons');for(const p of t.pokemon){const b=button('','return-mon',()=>speciesDetails(p.id,t.location.id));b.append(sprite(p.id),el('span','',species(p.id).name));mons.append(b);}card.append(mons);}if(t.items.length)card.append(el('p','muted',t.items.length+' offene Funde · '+[...new Set(t.items.map(i=>i.name))].slice(0,3).join(', ')));main.append(card);}
 }
-function message(text) {
-  const el = document.getElementById('status'); el.textContent = text; el.hidden = false;
-}
-function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; }
-  catch { message('Dein Browser kann den Fortschritt gerade nicht dauerhaft speichern. Nutze „Sicherung speichern“, bevor du diese Seite schließt.'); return false; }
-}
-try {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) state = restoreProgress(JSON.parse(saved), guide);
-} catch { message('Der gespeicherte Fortschritt konnte nicht geladen werden. Du kannst eine Sicherung laden; neue Schritte bleiben für diese Sitzung verfügbar.'); }
-
-function chapterHref(chapter) { return '#guide/' + encodeURIComponent(chapter.id); }
-function regionFor(chapter) { return guide.regions.find(region => region.id === chapter.region); }
-function indexOf(chapter) { return guide.chapters.indexOf(chapter); }
-function numberOf(chapter) { return String(indexOf(chapter) + 1).padStart(2, '0'); }
-function eyebrow(text) { return node('div', 'eyebrow', text); }
-function heading(title, aside) {
-  const row = node('div', 'section-heading'); row.append(node('h2', '', title));
-  if (aside) row.append(node('span', '', aside)); return row;
-}
-function sourceNote(chapter) {
-  const details = node('details', 'source-note');
-  details.append(node('summary', '', 'Vorlage & Umfang dieses Guides'));
-  details.append(node('p', '', guide.source.title + (chapter ? ' · PDF-Seiten ' + chapter.pages.join(', ') + '.' : '.')));
-  details.append(node('p', '', guide.source.note)); return details;
-}
-
-function renderNavigation() {
-  const nav = document.getElementById('chapter-navigation'); nav.replaceChildren();
-  for (const region of guide.regions) {
-    const group = node('div', 'nav-region');
-    const title = node('div', 'nav-region-title'); const dot = node('span'); dot.setAttribute('aria-hidden', 'true');
-    title.append(dot, document.createTextNode(region.label)); group.append(title);
-    for (const chapter of guide.chapters.filter(chapter => chapter.region === region.id)) {
-      const item = link(chapterHref(chapter), 'chapter-link'); item.dataset.chapterId = chapter.id;
-      item.append(node('span', 'chapter-number', numberOf(chapter)), node('span', '', chapter.title), node('span', 'nav-count'));
-      group.append(item);
-    }
-    nav.append(group);
-  }
-  refreshProgress();
-}
-
-function refreshProgress() {
-  const total = totalProgress(guide, state);
-  for (const el of document.querySelectorAll('[data-total-percent]')) el.textContent = total.percent + ' %';
-  for (const el of document.querySelectorAll('[data-total-count]')) el.textContent = total.done + ' / ' + total.total + ' Schritte';
-  document.getElementById('overall-progress').value = total.percent;
-  for (const item of document.querySelectorAll('[data-chapter-id]')) {
-    const chapter = guide.chapters.find(chapter => chapter.id === item.dataset.chapterId);
-    const count = chapterProgress(chapter, state);
-    item.classList.toggle('complete', count.complete);
-    const current = route.page === 'guide' && route.id === chapter.id && !search.value.trim();
-    if (current) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
-    item.querySelector('.chapter-number').textContent = count.complete ? '✓' : numberOf(chapter);
-    item.querySelector('.nav-count').textContent = count.done + '/' + count.total;
-    item.setAttribute('aria-label', chapter.title + ', ' + count.done + ' von ' + count.total + ' Schritten' + (chapter.optional ? ', freiwilliger Abstecher' : ''));
-  }
-  const overview = document.querySelector('.overview-link');
-  if (route.page === 'start' && !search.value.trim()) overview.setAttribute('aria-current', 'page'); else overview.removeAttribute('aria-current');
-  if (route.page === 'guide') {
-    const chapter = guide.chapters.find(chapter => chapter.id === route.id);
-    if (chapter) {
-      const count = chapterProgress(chapter, state);
-      const label = main.querySelector('[data-current-count]'); if (label) label.textContent = count.done + ' / ' + count.total + ' erledigt';
-      const bar = main.querySelector('[data-current-progress]'); if (bar) { bar.max = count.total; bar.value = count.done; }
-      const complete = main.querySelector('.chapter-complete'); if (complete) complete.hidden = !count.complete;
-    }
-  }
-}
-
-function primaryButton(text, href) {
-  const button = link(href, 'primary-button'); button.append(node('span', '', text), node('span', 'button-arrow', '→')); return button;
-}
-function renderOverview() {
-  const total = totalProgress(guide, state), next = nextChapter(guide, state);
-  const hero = node('section', 'hero'); const copy = node('div', 'hero-copy');
-  copy.append(eyebrow('GOLD & SILBER · DEIN STORY-GUIDE'));
-  const title = node('h1'); title.append(document.createTextNode('Der Weg ist das '), node('em', '', 'Abenteuer.')); copy.append(title);
-  copy.append(node('p', '', 'Von deinem ersten Pokémon in Neuborkia bis zum Silberberg. Dein Reisebuch für Johto, Kanto und alles dazwischen.'));
-  copy.append(primaryButton(total.done ? (total.percent === 100 ? 'Deine Reise ansehen' : 'Abenteuer fortsetzen') : 'Abenteuer beginnen', chapterHref(next)));
-  copy.append(node('span', 'hero-footnote', 'ORIGINALSPIELE · KEIN KONTO NÖTIG · DEIN TEMPO'));
-  const figure = node('figure', 'landscape-frame'); const landscape = node('img');
-  landscape.src = './assets/landscape.svg'; landscape.alt = ''; landscape.width = 520; landscape.height = 340;
-  const caption = node('figcaption'); const screen = node('span'); const live = node('span', 'live-dot'); screen.append(live, document.createTextNode('BEREIT FÜR DEN NÄCHSTEN SCHRITT'));
-  caption.append(screen, node('span', '', 'GEN. II / 02')); figure.append(landscape, caption); hero.append(copy, figure); main.append(hero);
-
-  const stats = node('div', 'stat-strip');
-  for (const [value, label, hint] of [[total.percent + ' %', 'Deine Geschichte', total.done + ' von ' + total.total + ' Schritten'], [total.badges.length + '/16', 'Orden gesammelt', 'Johto & Kanto'], [total.chapters + '/' + total.chapterTotal, 'Kapitel abgeschlossen', 'Freiwillige Ziele zählen extra']]) {
-    const stat = node('div', 'stat'), text = node('span'); text.append(node('b', '', label), document.createTextNode(hint)); stat.append(node('strong', '', value), text); stats.append(stat);
-  }
-  main.append(stats);
-  main.append(renderCollectionSummary(state));
-  const resume = node('section', 'continue-card'), resumeCopy = node('div');
-  resumeCopy.append(eyebrow(total.percent === 100 ? 'DEINE HAUPTGESCHICHTE IST ABGESCHLOSSEN' : 'DEIN NÄCHSTER HALT'), node('h3', '', next.title), node('p', '', next.summary));
-  const resumeLink = link(chapterHref(next), 'continue-link', '→'); resumeLink.setAttribute('aria-label', next.title + ' öffnen'); resume.append(resumeCopy, resumeLink); main.append(resume);
-
-  main.append(heading('Deine Reiseroute', 'DREI ETAPPEN. EIN ABENTEUER.'));
-  const regions = node('div', 'region-grid');
-  for (const [index, region] of guide.regions.filter(region => region.id !== 'extras').entries()) {
-    const chapters = guide.chapters.filter(chapter => chapter.region === region.id);
-    const nextRegional = chapters.find(chapter => !chapterProgress(chapter, state).complete) || chapters[0];
-    const card = link(chapterHref(nextRegional), 'region-card');
-    card.append(node('span', 'region-no', '0' + (index + 1)), node('h3', '', region.label), node('p', '', region.subtitle));
-    const bottom = node('div', 'region-card-bottom'); bottom.append(node('span', '', chapters.filter(chapter => chapterProgress(chapter, state).complete).length + '/' + chapters.length + ' Kapitel'), node('span', '', '↗')); card.append(bottom); regions.append(card);
-  }
-  main.append(regions);
-  main.append(heading('Deine Ordensammlung', 'SCHRITT FÜR SCHRITT VERDIENT'));
-  const badgesPanel = node('section', 'badges-panel'); const badgesTop = node('div', 'badges-top');
-  badgesTop.append(node('h2', '', 'Ein Platz für jeden Meilenstein'), node('span', '', total.badges.length + ' VON 16 ORDEN')); badgesPanel.append(badgesTop);
-  const badges = node('ul', 'badges');
-  for (const [index, badge] of guide.badges.entries()) {
-    const earned = total.badges.includes(badge.id), item = node('li', 'badge' + (earned ? ' earned' : ''));
-    item.title = badge.name + ' · ' + badge.leader + ' · ' + (earned ? 'erhalten' : 'noch offen');
-    const icon = node('span', 'badge-icon'); icon.setAttribute('aria-hidden', 'true'); icon.append(node('span', '', String(index + 1).padStart(2, '0')));
-    item.append(icon, node('span', 'badge-name', badge.leader), node('span', 'sr-only', badge.name + ': ' + (earned ? 'erhalten' : 'noch offen'))); badges.append(item);
-  }
-  badgesPanel.append(badges); main.append(badgesPanel);
-  const extras = link(chapterHref(guide.chapters.find(chapter => chapter.region === 'extras')), 'extra-link'); extras.append(node('span', '', 'Abseits des Weges: Ruinen, legendäre Pokémon & kleine Umwege'), node('span', '', '→')); main.append(extras);
-  main.append(heading('Gut zu wissen, bevor du losziehst'));
-  const basics = node('div', 'basics-grid');
-  for (const basic of guide.basics) { const card = node('article', 'basic'); card.append(node('h3', '', basic.title), node('p', '', basic.text)); basics.append(card); }
-  main.append(basics, sourceNote());
-}
-
-function makeChecklist(chapter, steps) {
-  const list = node('div', 'checklist');
-  for (const step of steps) {
-    const label = node('label', 'task'), checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.id = 'task-' + step.id;
-    checkbox.checked = state.completed[state.edition].includes(step.id);
-    const copy = node('span', 'task-copy'); copy.append(node('span', 'task-text', step.text));
-    if (step.badge) copy.append(node('span', 'badge-chip', guide.badges.find(badge => badge.id === step.badge).name));
-    label.append(checkbox, copy); list.append(label);
-    checkbox.addEventListener('change', () => { state = toggleStep(state, chapter, step.id, checkbox.checked); persist(); refreshProgress(); });
-  }
-  return list;
-}
-function renderChapter(chapter) {
-  const count = chapterProgress(chapter, state); const region = regionFor(chapter);
-  const header = node('header', 'chapter-header');
-  header.append(link('#start', 'back-link', '← Zur Reiseübersicht'), eyebrow(region.label + ' / ABSCHNITT ' + numberOf(chapter) + (chapter.optional ? ' · FREIWILLIG' : '')), node('h1', '', chapter.title), node('p', 'chapter-summary', chapter.summary), node('div', 'chapter-english', chapter.english));
-  main.append(header);
-  main.append(chapterCollectionLinks(chapter.id));
-  const progress = node('section', 'chapter-progress'); const row = node('div', 'row-between'); const value = node('strong'); value.dataset.currentCount = '';
-  row.append(node('span', '', chapter.optional ? 'Dein freiwilliges Ziel' : 'Dein Fortschritt in diesem Abschnitt'), value);
-  const bar = node('progress'); bar.dataset.currentProgress = ''; bar.setAttribute('aria-label', 'Fortschritt in ' + chapter.title); bar.max = count.total; bar.value = count.done;
-  progress.append(row, bar, node('p', 'chapter-complete', '✓ Abschnitt erledigt. Bereit für den nächsten Schritt?')); main.append(progress);
-  const steps = visibleSteps(chapter, state.edition);
-  main.append(node('h2', 'checklist-title', 'Schritt für Schritt'), makeChecklist(chapter, steps.filter(step => !step.optional)));
-  const optional = steps.filter(step => step.optional);
-  if (optional.length) { const more = node('details', 'optional-tasks'); more.append(node('summary', '', 'Freiwillige Aufgaben (' + optional.length + ')'), makeChecklist(chapter, optional)); main.append(more); }
-  if (chapter.tips.length) {
-    const tips = node('details', 'tips-box'); const content = node('div', 'tips-content'); tips.append(node('summary', '', 'Tipps für diesen Abschnitt'));
-    for (const text of chapter.tips) content.append(node('p', '', text)); tips.append(content); main.append(tips);
-  }
-  const bottom = node('nav', 'chapter-bottom'); bottom.setAttribute('aria-label', 'Zwischen Abschnitten wechseln');
-  const index = indexOf(chapter), previous = guide.chapters[index - 1], next = guide.chapters[index + 1];
-  bottom.append(link(previous ? chapterHref(previous) : '#start', 'back-link', previous ? '← Vorheriger Abschnitt' : '← Reiseübersicht'));
-  if (next) { const nextLink = link(chapterHref(next), 'next-link'); nextLink.append(node('span', '', next.optional ? 'Freiwilliger Abstecher' : 'Nächster Abschnitt'), document.createTextNode(next.title + ' →')); bottom.append(nextLink); }
-  else bottom.append(link('#start', 'next-link', 'Zur Reiseübersicht →'));
-  main.append(bottom, sourceNote(chapter));
-}
-
-function renderSearch(query) {
-  const matches = searchChapters(guide, state.edition, query);
-  const head = node('header', 'search-header'); head.append(eyebrow('SUCHE IM GESAMTEN GUIDE'), node('h1', 'search-heading', 'Auf der Suche nach „' + query + '“'), node('p', '', matches.length + (matches.length === 1 ? ' passender Abschnitt' : ' passende Abschnitte') + ' · Deutsche und englische Namen werden durchsucht.')); main.append(head);
-  const resultList = node('div', 'search-results');
-  for (const chapter of matches) {
-    const result = link(chapterHref(chapter), 'search-result'); result.dataset.searchResult = 'true';
-    result.append(eyebrow(regionFor(chapter).label + ' · ABSCHNITT ' + numberOf(chapter)), node('h2', '', chapter.title), node('p', '', chapter.summary));
-    const matchedStep = visibleSteps(chapter, state.edition).find(step => normalize(query).split(/\s+/).some(token => normalize(step.text).includes(token)));
-    if (matchedStep) result.append(node('p', 'match-text', matchedStep.text)); resultList.append(result);
-  }
-  if (!matches.length) resultList.append(node('p', 'no-results', 'Hier ist noch keine passende Spur. Versuche einen kürzeren Begriff oder einen Ortsnamen wie „Dukatia“ oder „Goldenrod“.'));
-  main.append(resultList);
-  let count = document.getElementById('search-announcement');
-  if (!count) { count = node('span', 'sr-only'); count.id = 'search-announcement'; count.setAttribute('role', 'status'); document.body.append(count); }
-  count.textContent = matches.length + ' passende Abschnitte gefunden.';
-}
-
-function readRoute() {
-  const hash = location.hash.slice(1);
-  if (!hash || hash === 'start') return { page: 'start' };
-  if (['dex','items','returns'].includes(hash)) return {page:hash};
-  if (hash === 'collect') return {page:'collect',id:state.collection[state.edition].lastLocation};
-  if (hash.startsWith('collect/')) {
-    const id=hash.slice(8);
-    if(collectionData.locations.some(loc=>loc.id===id)) return {page:'collect',id};
-  }
-  if (hash.startsWith('guide/')) {
-    try { const id = decodeURIComponent(hash.slice(6)); if (guide.chapters.some(chapter => chapter.id === id)) return { page: 'guide', id }; }
-    catch { /* An invalid URL is handled by returning to the overview. */ }
-  }
-  history.replaceState(null, '', location.pathname + location.search + '#start');
-  message('Dieser Abschnitt wurde nicht gefunden. Hier geht es zurück zur Reiseübersicht.'); return { page: 'start' };
-}
-function render() {
-  document.documentElement.dataset.edition = state.edition;
-  for (const button of document.querySelectorAll('.edition[data-edition]')) button.setAttribute('aria-pressed', String(button.dataset.edition === state.edition));
-  document.getElementById('edition-indicator').textContent = state.edition === 'gold' ? 'GOLD EDITION' : 'SILBER EDITION';
-  main.replaceChildren();
-  for(const a of document.querySelectorAll('[data-mode]')){
-    const selected=a.dataset.mode===route.page||a.dataset.mode==='story'&&['start','guide'].includes(route.page);
-    if(selected)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
-    if(a.dataset.mode==='collect')a.href='#collect/'+state.collection[state.edition].lastLocation;
-  }
-  if (['collect','dex','items','returns'].includes(route.page)) {
-    renderCollection(main,route,state,()=>{persist();render();},search.value.trim());
-    document.title=({collect:'Sammelreise',dex:'Pokédex',items:'Items',returns:'Rückkehrziele'})[route.page]+' · PokéGuide';
-  }
-  else if (search.value.trim()) { renderSearch(search.value.trim()); document.title = 'Suche · PokéGuide'; }
-  else if (route.page === 'guide') {
-    const chapter = guide.chapters.find(chapter => chapter.id === route.id); renderChapter(chapter); document.title = chapter.title + ' · PokéGuide';
-  } else { renderOverview(); document.title = 'PokéGuide · Gold & Silber'; }
-  refreshProgress();
-}
-
-for (const button of document.querySelectorAll('.edition[data-edition]')) button.addEventListener('click', () => {
-  state.edition = button.dataset.edition;
-  if (route.page === 'guide') state.lastChapter[state.edition] = route.id;
-  persist(); render();
-});
-search.addEventListener('input', render);
-document.addEventListener('keydown', event => {
-  if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && !document.activeElement.isContentEditable) { event.preventDefault(); search.focus(); }
-  if (event.key === 'Escape' && document.activeElement === search) { search.value = ''; render(); search.blur(); }
-});
-window.addEventListener('hashchange', () => {
-  search.value = ''; route = readRoute();
-  if (route.page === 'collect') {state.collection[state.edition].lastLocation=route.id;persist();}
-  if (route.page === 'guide') { state.lastChapter[state.edition] = route.id; persist(); }
-  render(); main.focus();
-  if (matchMedia('(max-width: 850px)').matches) document.querySelector('.chapter-disclosure').open = false;
-});
-document.addEventListener('click', event => {
-  const target = event.target.closest('a[href^="#"]');
-  if (target?.getAttribute('href') === '#main') { event.preventDefault(); main.focus(); return; }
-  if (target && target.getAttribute('href') === location.hash && search.value.trim()) {
-    search.value = ''; render(); main.focus();
-  }
-});
-document.getElementById('export-progress').addEventListener('click', () => {
-  const data = JSON.stringify({ ...state, exportedAt: new Date().toISOString() }, null, 2);
-  const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
-  const anchor = link(url, '', ''); anchor.download = 'pokeguide-gold-silber-fortschritt.json'; document.body.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  message('Deine Fortschrittssicherung wurde zum Download bereitgestellt.');
-});
-const backupFile = document.getElementById('backup-file');
-document.getElementById('import-progress').addEventListener('click', () => backupFile.click());
-backupFile.addEventListener('change', async () => {
-  const file = backupFile.files[0]; if (!file) return;
-  try {
-    if (file.size > 512 * 1024) throw new Error('Die Datei ist zu groß für eine Fortschrittssicherung.');
-    let parsed; try { parsed = JSON.parse(await file.text()); } catch { throw new Error('Die Datei enthält kein gültiges JSON. Bitte wähle eine PokéGuide-Sicherung.'); }
-    state = mergeBackup(state, parsed, guide);
-    if (persist()) message('Sicherung geladen. Die gespeicherten Schritte wurden zu deinem Fortschritt hinzugefügt.');
-    render();
-  } catch (error) { message(error.message || 'Die Sicherung konnte nicht geladen werden.'); }
-  finally { backupFile.value = ''; }
-});
-
-route = readRoute();
-if (route.page === 'collect') { state.collection[state.edition].lastLocation = route.id; persist(); }
-if (route.page === 'guide') { state.lastChapter[state.edition] = route.id; persist(); }
-if (matchMedia('(max-width: 850px)').matches) document.querySelector('.chapter-disclosure').open = false;
-renderNavigation(); render();
+function renderBag(){const head=el('header','page-header');head.append(el('div','eyebrow','DEIN REISEGEPÄCK'),el('h1','','Alles dabei.'),el('p','muted','Edition, Ausrüstung und deine gespeicherte Sammlung.'));main.append(head);
+ const actions=el('div','bag-actions');for(const [title,sub,ico,fn]of [['Edition',editionName()+' · getrennte Sammlung','ball',openEdition],['Ausrüstung','Angeln, VMs & Story-Freigaben','bag',openGear],['Spielzeit',compactTime[co().time]+' · '+(co().weekday==='all'?'Alle Tage':dayNames[co().weekday]),'clock',openTime],['Gebiet wählen',place(co().lastLocation).name,'map',routePicker],['Sicherung speichern','Pokédex & Funde als JSON herunterladen','download',exportBackup],['Sicherung laden','Gespeicherte Fänge und Funde ergänzen','upload',()=>$('#backup-file').click()]]){const b=button('','bag-action',fn);const text=el('span');text.append(el('strong','',title),el('small','',sub));b.append(icon(ico),text,icon('arrow'));actions.append(b);}main.append(actions);
+ const info=el('section','about-panel');info.append(el('h2','','Ein Begleiter für unterwegs.'),el('p','','Wähle dein Gebiet, fange fehlende Arten und tippe auf „Gefangen“. Dein Pokédex blendet diese Art auf allen weiteren Routen aus. Entwicklungen bleiben separat offen. Items findest du im zweiten Tab jedes Gebiets.'),el('p','','„Neu hier“ bedeutet erstmals wild fangbar in der empfohlenen Gebietsfolge. Es ist unabhängig davon, was du selbst schon gefangen hast. Fänge mit fehlenden Voraussetzungen stehen unter „Für später“.'));
+ info.append(el('p','','Dein Fortschritt bleibt in diesem Browser. Nutze eine Sicherung für einen Gerätewechsel. Der Guide greift nicht auf deinen Spielstand zu.'));
+ const sources=el('details','plain-details');sources.append(el('summary','','Quellen & Umfang'));sources.append(el('p','','Für die Originalspiele Gold und Silber. Keine Pokémon-GO- oder Kristall-Daten. Spielbedingte Tausch-, Zucht- und Eventgrenzen sind bei den Arten vermerkt. Zugangsvoraussetzungen folgen einer empfohlenen Reiseroute; Sonderfälle können zusätzliche Schritte erfordern.'));sources.append(link(data.sourceUrl,'Fang- und Funddaten: pret/pokegold','source-link'),link('https://github.com/PokeAPI/sprites/tree/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/versions/generation-ii/gold/transparent','Pokémon-Bilder: Gold-Sprites via PokéAPI','source-link'),link('https://github.com/DonKnutzen/Pokemon-Guide','Projekt auf GitHub','source-link'));sources.append(el('p','','Pokémon und die Originalgrafiken gehören ihren jeweiligen Rechteinhabern. Inoffizielles Fanprojekt.'));info.append(sources);main.append(info);}
+function exportBackup(){const url=URL.createObjectURL(new Blob([JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'})),a=link(url,'');a.download='pokeguide-gold-silber-fortschritt.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Deine Sicherung wurde zum Download bereitgestellt.');}
+$('#backup-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>512*1024)throw Error('Diese Sicherung ist zu groß.');state=mergeBackup(state,JSON.parse(await file.text()),guide);save();notify('Sicherung ergänzt. Deine bisherigen Fänge bleiben erhalten.');}catch(err){notify(err.message||'Sicherung konnte nicht geladen werden.');}finally{e.target.value='';}});
+function renderSidebar(){const side=$('#journey-sidebar'),scroll=side.querySelector('.sidebar-routes')?.scrollTop||0;side.replaceChildren();const head=el('div','sidebar-title');head.append(el('span','eyebrow','DEINE REISEROUTE'),el('h2','','Ein Gebiet nach dem anderen.'));side.append(head);const list=el('nav','sidebar-routes');list.setAttribute('aria-label','Gebiete in Spielreihenfolge');let region='';for(const [index,p]of data.locations.entries()){if(region!==p.region){region=p.region;list.append(el('h3','route-region',region==='johto'?'JOHTO & LIGA':'KANTO'));}const b=button('','side-route '+(co().lastLocation===p.id?'active':''),()=>navigate(p.id));b.setAttribute('aria-label',p.name+(co().lastLocation===p.id?' · aktuelles Gebiet':''));if(co().lastLocation===p.id)b.setAttribute('aria-current','location');b.append(el('span','route-dot',co().visited.includes(p.id)?'✓':String(index+1).padStart(2,'0')),el('span','',p.name));list.append(b);}side.append(list);list.scrollTop=scroll;const foot=el('div','sidebar-foot');foot.append(sprite(co().starter||152),el('div','','Dein Abenteuer. Dein Tempo.'));side.append(foot);}
+function render(){document.documentElement.dataset.edition=state.edition;$('#edition-switch').replaceChildren(document.createTextNode(editionName()+' '),el('span','','⌄'));const counter=$('#dex-counter');counter.replaceChildren(icon('ball'),el('span','',co().caught.length+' / 251'));main.replaceChildren();
+ for(const [key,title,ico]of [['route','Reise','compass'],['dex','Pokédex','ball'],['returns','Rückwege','back'],['bag','Rucksack','bag']]){let a=$('#nav-'+key);if(!a){a=link(key==='route'?'#route/'+co().lastLocation:'#'+key,title,'nav-item',ico);a.id='nav-'+key;$('#main-nav').append(a);}if(key==='route')a.href='#route/'+co().lastLocation;a.classList.toggle('active',route.page===key);if(route.page===key)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');}
+ renderSidebar();if(route.page==='dex')renderDex();else if(route.page==='returns')renderReturns();else if(route.page==='bag')renderBag();else renderRoute();document.title=(route.page==='route'?place(route.id).name:route.page==='dex'?'Dein Pokédex':route.page==='returns'?'Rückwege':'Rucksack')+' · PokéGuide';}
+$('#edition-switch').addEventListener('click',openEdition);
+window.addEventListener('hashchange',()=>{route=readRoute();if(route.page==='route'){co().lastLocation=route.id;co().visited=[...new Set([...co().visited,route.id])];persist();}render();main.focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});});
+route=readRoute();if(route.page==='route'){co().lastLocation=route.id;co().visited=[...new Set([...co().visited,route.id])];persist();}render();

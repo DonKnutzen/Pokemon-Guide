@@ -1,65 +1,63 @@
-# PokéGuide · Gold & Silber
+# PokéGuide · Dein Fangbegleiter
 
-Deutscher Story- und Sammelbegleiter für die originalen Game-Boy-Color-Spiele Pokémon Gold und Silber.
+Ein mobiler Begleiter für die originalen Game-Boy-Color-Spiele Pokémon Gold und Silber.
 
 **Website:** https://donknutzen.github.io/Pokemon-Guide/
 
-## Funktionen
+## So benutzt du ihn
 
-- **Durchspielen:** 34 Story-Abschnitte von Neuborkia über die Liga und Kanto bis zum Silberberg, mit Aufgaben und allen 16 Orden.
-- **Sammelreise:** 94 Gebiete in einer empfohlenen Reihenfolge. „Erstmals wild“ zeigt Arten, die an früheren Orten dieser Route noch nicht wild fangbar waren. Tageszeiten, Edition, Fangmethode und spätere Zugangsvoraussetzungen bleiben sichtbar.
-- **Items:** einzeln abhakbare sichtbare und versteckte Funde, Gesprächsbelohnungen und Baumfunde. Ladenangebote und zufällige getragene Items stehen zusätzlich bereit.
-- **Rückkehrziele:** noch offene Fänge und Funde in besuchten Gebieten, die durch neue Ausrüstung oder Story-Fortschritt erreichbar werden.
-- **Pokédex:** 251 Arten mit Fang-, Geschenk-, Tausch-, Entwicklungs- und Zuchthinweisen. Externe Tausch-/Eventquellen sind gekennzeichnet.
-- Getrennte Gold-/Silber-Sammlungen, lokale Speicherung und JSON-Sicherungen. Bisherige Story-Sicherungen bleiben kompatibel.
-- Responsive Oberfläche ohne externe Schriftarten, kostenpflichtige APIs oder JavaScript-Paketabhängigkeiten.
+1. **Edition wählen.** Gold und Silber haben getrennte Sammlungen und Fangorte.
+2. **Aktuelles Gebiet wählen.** Die Reiseroute führt durch 94 Orte. Mit dem Pfeil geht es zum nächsten Gebiet; die Gebietsauswahl springt direkt zu einem Ort.
+3. **Fehlende Arten ansehen.** Kleine Original-Pixelbilder, Fangmethoden, Tageszeiten und Level stehen direkt auf der Karte. Antippen öffnet alle Details.
+4. **„Gefangen“ antippen.** Die Art wandert in deinen Pokédex und verschwindet aus den offenen Fanglisten sämtlicher weiterer Gebiete. Entwicklungen bleiben eigenständig offen. „Rückgängig“ korrigiert einen versehentlichen Fang.
+5. **Ausrüstung aktualisieren.** Noch nicht nutzbare Angel-, VM- und Sonderfänge bleiben unter „Für später merken“ sichtbar. Besuche und Ausrüstung sind unabhängig; der Wechsel eines Gebiets schaltet keine VM frei.
 
-In der Sammelreise zuerst Edition, Starter und tatsächlichen Spielstand bestätigen. Passende Story-Häkchen und eingesammelte Ausrüstung ergänzen Freischaltungen automatisch. „Gebiet besucht“ schaltet keine VM frei. Spielzeit und Wochentag beziehen sich auf die Uhr des Spiels.
+Items stehen im zweiten Tab jedes Gebiets: sichtbare und versteckte Funde, Gesprächsbelohnungen und Baumfunde. Ein Tippen zeigt Voraussetzungen und Fundposition. Läden und bereits erledigte Funde sind eingeklappt. Unter **Rückwege** erscheinen durch neue Ausrüstung erreichbare offene Ziele in besuchten Gebieten.
 
-## Umfang und Vergleichsregel
+Der Pokédex zeigt alle 251 Arten mit editionsabhängigen Fangquellen, Entwicklungen, Zucht und nötigem externen Tausch. Eine Entwicklung wird nicht automatisch als erhalten gewertet, wenn du ihre Vorentwicklung fängst. Pokémon anderer Editionen werden nicht als lokale Wildfänge angeboten.
 
-Der Reiseplan verwendet eine feste empfohlene Reihenfolge. Manche Abstecher sind bei anderer Wegwahl früher möglich; „Erstmals wild“ ist kein global optimierter Geschwindigkeitsrekord. Eine bereits geschenkte Art kann später trotzdem erstmals *wild* fangbar sein. Der eigene Fangstatus wird separat gespeichert.
+## Speicherung und vorhandener Fortschritt
 
-Pro Edition sind 136 sichtbare Bodenfunde, 87 versteckte Fundstellen, 107 Gesprächs-/Belohnungseinträge und 30 Baumfunde erfasst. Dazu kommen Ladenangebote und 83 Art-/Item-Kombinationen für getragene Items. Turnier-, Lotterie-, Freundschafts- und Auftragsbedingungen stehen beim Eintrag; ein erreichbarer Ort garantiert einen solchen Erfolg nicht. Wiederholbare Quellen zählen als Bezugsort, nicht als begrenzter Gesamtvorrat.
+Fortschritt bleibt lokal im Browser. Unter **Rucksack** lassen sich JSON-Sicherungen herunterladen und wieder ergänzend laden. Ohne Sicherung gibt es keine geräteübergreifende Synchronisation. Das Löschen der Browserdaten kann den Fortschritt entfernen.
 
-Der Rasterplan zeigt Fund- und Personenpositionen mit Norden oben. Er bildet keine Wege, Wasserflächen oder Hindernisse ab. Die Inhalte gelten für Gold und Silber, nicht für Kristall oder HeartGold/SoulSilver. Attackentabellen und Spezialverteilungen über historische externe Geräte sind nicht Bestandteil dieses Guides. Die Zugangsvoraussetzungen wurden für den empfohlenen Spielverlauf kuratiert; Sonderfälle können weitere redaktionelle Prüfung benötigen.
+Vorhandene Story- und Sammelsicherungen bleiben kompatibel. Frühere Story-Häkchen werden für passende Freischaltungen weiter berücksichtigt. Neu erfasste Fänge merken sich zusätzlich das Gebiet. Die Oberfläche startet direkt beim zuletzt gewählten Gebiet; der frühere lange Story- und Aufgabenaufbau ist durch die Fangreise ersetzt.
 
-## Hosting und lokale Prüfung
+## Umfang und Quellen
 
-GitHub Pages verwendet **main → /docs**. Änderungen auf `main` werden automatisch veröffentlicht. Ein Build-Schritt ist nicht nötig.
+„Neu hier“ bedeutet erstmals wild fangbar in der empfohlenen Gebietsfolge, unabhängig von deinem eigenen Fangstatus. Andere Abstecher können bei anderer Wegwahl früher möglich sein. Der Guide verändert und liest keinen Spielstand.
 
-Mit einem statischen HTTP-Server den Ordner `docs/` bereitstellen:
+Pro Edition sind 136 sichtbare Bodenfunde, 87 versteckte Fundstellen, 107 Gesprächs-/Belohnungseinträge und 30 Baumfunde erfasst, dazu Ladenangebote. Zufalls- und Sonderbedingungen stehen in den Details. Die Fundposition ist ein Rasterpunkt mit Norden oben, keine begehbare Spielkarte. Die Daten gelten für Gold und Silber, nicht für Pokémon GO, Kristall oder die Remakes.
+
+- Fang- und Funddaten sowie Entwicklungsregeln: [pret/pokegold](https://github.com/pret/pokegold/tree/fc702b6d922aecce274782d68bba8639936a1182).
+- Deutsche Namen: [PokéAPI](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv), ergänzt um historische Itemnamen.
+- **Alle 251 Bilder werden lokal mitgeliefert:** originale Gold-Pixelbilder aus [PokeAPI/sprites](https://github.com/PokeAPI/sprites/tree/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/versions/generation-ii/gold/transparent), in zwei kompakten Bilddateien. Die Gold-Darstellungen werden für beide Editionen verwendet. Zur Laufzeit gibt es keine fremden Bildabrufe.
+- Die früheren Story-Daten basieren auf der vom Projektinhaber bereitgestellten Nintendo-Power-Komplettlösung **Pokémon Gold & Silver (2000)**. PDF und Scans sind nicht im Repository enthalten.
+
+Zugangsvoraussetzungen wurden für die empfohlene Reise kuratiert; Sonderfälle können zusätzliche Prüfung benötigen. Historische Verteilungen über externe Geräte und vollständige Attackentabellen sind nicht enthalten.
+
+## Hosting und Entwicklung
+
+GitHub Pages verwendet **main → /docs**. Änderungen auf `main` werden automatisch veröffentlicht; es gibt keinen Build-Schritt und keine Laufzeit-Paketabhängigkeiten.
 
 ```sh
 python3 -m http.server 8080 --directory docs
 ```
 
-Danach `http://localhost:8080/` öffnen. Es wird ein aktueller Browser mit JavaScript-Modulen und `DecompressionStream` benötigt. Die komprimierten Fang-/Funddaten werden lokal im Browser entpackt; zur Laufzeit wird kein Datendienst abgefragt.
-
-Die Tests benötigen Node.js ab Version 20, ohne Paketinstallation:
+Dann `http://localhost:8080/` öffnen. Benötigt wird ein aktueller Browser mit JavaScript-Modulen und `DecompressionStream`; die komprimierten Fangdaten werden lokal entpackt.
 
 ```sh
 npm test
 ```
 
-## Projektaufbau und Datenpflege
+Tests benötigen Node.js ab Version 20, ohne Paketinstallation.
 
-- `docs/assets/app.js`, `model.js`: Story-Oberfläche, Navigation, Speichern und Sichern.
-- `docs/assets/collection-model.js`, `collection-view.js`: Zugangsregeln und Sammelbereiche.
-- `docs/assets/style.css`, `collection.css`: responsive Gestaltung.
-- `docs/data/gold-silver.js`: Story-Inhalte, Editionsregeln und PDF-Seitenbezüge.
+- `docs/assets/app.js`, `journey.css`: mobile Oberfläche, Gebietsauswahl, Detailfenster und Sicherungen.
+- `docs/assets/journey-model.js`: offene und spätere Fänge, editionsabhängige Bezugsarten, Fundgruppen und Fangstatus.
+- `docs/assets/collection-model.js`, `model.js`: Freischaltungen und kompatibles Speichermodell.
 - `docs/data/collection-data.js`: komprimierter lokaler Fang-/Funddatensatz.
-- `tools/build_collection.py`, `curate_collection.py`: Extraktion und deutsche redaktionelle Regeln; Eingaben siehe [tools/README.md](tools/README.md).
-- `test/`: Prüfungen für Editionen, Neu-Vergleich, Zugangsvoraussetzungen, Rückkehrziele und Sicherungen.
+- `docs/data/gold-silver.js`: ältere Story-Daten zur Fortschrittskompatibilität.
+- `docs/assets/pokemon-sprites-{1,2}.png`: zwei verlustfreie Bildatlanten mit je 16 × 8 Feldern à 56 × 56 Pixel; Arten 1–128 und 129–251.
+- `tools/`: Datenpflege und Bildatlas-Erzeugung, siehe [tools/README.md](tools/README.md).
+- `test/`: Prüfungen für Zugang, Editionen, globale Fangfilter, Entwicklungen und Sicherungen.
 
-Aufgaben- und Fundort-IDs bleiben bei redaktionellen Änderungen stabil, damit gespeicherter Fortschritt erhalten bleibt. Weitere Spiele benötigen eigene Datensätze und Speicherschlüssel.
-
-## Quellen
-
-Die Story basiert auf der vom Projektinhaber bereitgestellten Nintendo-Power-Komplettlösung **Pokémon Gold & Silver (2000)**, eigenständig auf Deutsch formuliert. Die Kapitel nennen PDF-Seiten ab der ersten Dateiseite. PDF und Scans sind nicht im Repository enthalten.
-
-Fangtabellen, Item-Ereignisse, Positionen, Entwicklungsregeln und getragene Items stammen aus dem [pret/pokegold-Quellsnapshot](https://github.com/pret/pokegold/tree/fc702b6d922aecce274782d68bba8639936a1182). Deutsche Namen wurden mit [PokéAPI-Daten](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv) abgeglichen und für Generation II ergänzt. Es wird kein ROM benötigt oder verteilt.
-
-Fortschritt im Guide verändert keinen Spielstand. Ohne manuelle Sicherung gibt es keine geräteübergreifende Synchronisation. Das Löschen der Browserdaten kann lokalen Fortschritt entfernen.
-
-Inoffizielles Fanprojekt. Pokémon und zugehörige Namen gehören den jeweiligen Rechteinhabern. Landschaftsgrafik und Projekt-Icon wurden für diese Oberfläche erstellt.
+Aufgaben-, Gebiets- und Fund-IDs bleiben stabil. Inoffizielles Fanprojekt. Pokémon, Namen und Originalgrafiken gehören den jeweiligen Rechteinhabern.

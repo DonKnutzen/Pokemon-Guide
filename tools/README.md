@@ -26,3 +26,13 @@ npm test
 `build_collection.py` extrahiert Tatsachen aus den Assemblertabellen und Kartenereignissen. `curate_collection.py` ergänzt die empfohlene Gebietsreihenfolge, Zugangsregeln, deutsche Bezeichnungen, Geschenke, Tausche und Sonderfälle. Skriptbedingungen müssen weiterhin redaktionell geprüft werden: Die Extraktion ist kein vollständiger Spiel-Interpreter. Bei geändertem Quellstand sind besonders alternative Zugänge, Gesprächsbedingungen und stabile Fundort-IDs zu kontrollieren.
 
 Der generierte Datensatz wird deterministisch mit gzip komprimiert und beim Modulimport mit der nativen Browser-API entpackt. Es wird keine ROM-Datei verarbeitet.
+
+## Lokale Pokémon-Bilder
+
+`build_sprite_atlas.py` lädt die 251 transparenten Gold-Sprites vom festgelegten Commit `PokeAPI/sprites@97a7832d307311c0e1c6ea9035308bf80cc94f81` und ordnet sie nach Pokédexnummer in zwei verlustfreien PNG-Bildatlanten an. Dafür werden bei der Entwicklung Python und Pillow benötigt:
+
+```sh
+python3 tools/build_sprite_atlas.py
+```
+
+Die fertige Website lädt nur `docs/assets/pokemon-sprites-1.png` und `pokemon-sprites-2.png` vom eigenen Host. Jeder Atlas hat 16 × 8 Zellen mit je 56 × 56 Pixeln. Der erste enthält Arten 1–128, der zweite 129–251; die letzten fünf Zellen bleiben frei. Die indizierten Paletten erhalten sämtliche Originalpixel. Es werden keine Spielerbilder oder ROMs verarbeitet. Beide Editionen verwenden die Gold-Darstellungen.

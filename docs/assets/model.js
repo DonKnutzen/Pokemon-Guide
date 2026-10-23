@@ -1,5 +1,5 @@
 import { collectionData } from '../data/collection-data.js';
-import { emptyCollection, restoreCollections, mergeCollections } from './collection-model.js';
+import { emptyCollection, restoreCollections, mergeCollections } from './collection-model.js?v=3';
 
 export const editions = ['gold', 'silver'];
 
