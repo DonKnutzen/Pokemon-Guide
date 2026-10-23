@@ -7,14 +7,15 @@
   <meta name="description" content="Dein mobiler Fangbegleiter für Pokémon Gold und Silber. Pokémon mit Bildern pro Route, offene Fänge, spätere Fangmethoden und dein persönlicher Pokédex.">
   <title>PokéGuide · Dein Fangbegleiter</title>
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/journey.css?v=3">
+  <script src="./assets/theme.js?v=4"></script>
+  <link rel="stylesheet" href="./assets/journey.css?v=4">
   <script type="module" src="./assets/app.js?v=3"></script>
 </head>
 <body>
   <a class="skip" href="#main">Zum Inhalt</a>
   <header class="app-header"><div class="header-inner">
     <a class="brand" href="#start"><span class="brand-ball" aria-hidden="true"></span><span>PokéGuide<small>DEIN FANGBEGLEITER</small></span></a>
-    <div class="header-actions"><button id="edition-switch" class="edition-switch" aria-label="Edition wechseln">Gold <span aria-hidden="true">⌄</span></button><a href="#dex" class="dex-counter" id="dex-counter" aria-label="Deinen Pokédex öffnen"></a></div>
+    <div class="header-actions"><button id="theme-toggle" class="theme-toggle" type="button" aria-label="Dunklen Modus aktivieren" aria-pressed="false">☾</button><button id="edition-switch" class="edition-switch" aria-label="Edition wechseln">Gold <span aria-hidden="true">⌄</span></button><a href="#dex" class="dex-counter" id="dex-counter" aria-label="Deinen Pokédex öffnen"></a></div>
   </div></header>
   <div class="workspace"><aside class="journey-sidebar" id="journey-sidebar" aria-label="Deine Reiseroute"></aside><main id="main" tabindex="-1"><div class="loading-view"><span class="brand-ball" aria-hidden="true"></span><p>Dein Gebiet wird geladen …</p></div></main></div>
   <nav class="bottom-nav" id="main-nav" aria-label="Hauptnavigation"></nav>

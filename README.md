@@ -16,6 +16,8 @@ Items stehen im zweiten Tab jedes Gebiets: sichtbare und versteckte Funde, Gespr
 
 Der Pokédex zeigt alle 251 Arten mit editionsabhängigen Fangquellen, Entwicklungen, Zucht und nötigem externen Tausch. Eine Entwicklung wird nicht automatisch als erhalten gewertet, wenn du ihre Vorentwicklung fängst. Pokémon anderer Editionen werden nicht als lokale Wildfänge angeboten.
 
+Mit dem Mond-/Sonnenknopf oben wechselst du zwischen Hell und Dunkel. Die Auswahl bleibt auf deinem Gerät gespeichert; ohne eigene Auswahl folgt die App dem Systemdesign.
+
 ## Speicherung und vorhandener Fortschritt
 
 Fortschritt bleibt lokal im Browser. Unter **Rucksack** lassen sich JSON-Sicherungen herunterladen und wieder ergänzend laden. Ohne Sicherung gibt es keine geräteübergreifende Synchronisation. Das Löschen der Browserdaten kann den Fortschritt entfernen.
