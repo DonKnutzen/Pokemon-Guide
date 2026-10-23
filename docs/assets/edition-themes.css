@@ -1,0 +1,119 @@
+/* Each edition supplies its own hue; both appearance modes share semantic tokens. */
+:root[data-edition=red]{--edition-hue:4;--edition-saturation:68%;--edition-secondary:18}
+:root[data-edition=blue]{--edition-hue:211;--edition-saturation:76%;--edition-secondary:192}
+:root[data-edition=yellow]{--edition-hue:47;--edition-saturation:92%;--edition-secondary:33}
+:root[data-edition=gold]{--edition-hue:37;--edition-saturation:76%;--edition-secondary:24}
+:root[data-edition=silver]{--edition-hue:218;--edition-saturation:18%;--edition-secondary:198}
+:root[data-edition=crystal]{--edition-hue:185;--edition-saturation:70%;--edition-secondary:247}
+:root[data-edition=ruby]{--edition-hue:341;--edition-saturation:72%;--edition-secondary:325}
+:root[data-edition=sapphire]{--edition-hue:238;--edition-saturation:65%;--edition-secondary:260}
+:root[data-edition=emerald]{--edition-hue:157;--edition-saturation:68%;--edition-secondary:178}
+:root[data-edition=firered]{--edition-hue:20;--edition-saturation:86%;--edition-secondary:4}
+:root[data-edition=leafgreen]{--edition-hue:96;--edition-saturation:57%;--edition-secondary:126}
+:root[data-edition]{
+ --bg:hsl(var(--edition-hue) 25% 98%);--paper:#fff;
+ --ink:hsl(var(--edition-hue) 18% 15%);--muted:hsl(var(--edition-hue) 12% 40%);
+ --line:hsl(var(--edition-hue) 22% 86%);
+ --accent:hsl(var(--edition-hue) var(--edition-saturation) 27%);
+ --accent-bright:hsl(var(--edition-hue) var(--edition-saturation) 42%);
+ --accent-soft:hsl(var(--edition-hue) 65% 95%);
+ --accent-line:hsl(var(--edition-hue) 40% 75%);
+ --hero:hsl(var(--edition-hue) 65% 93%);
+ --hero-end:hsl(var(--edition-secondary) 65% 96%);
+ --hero-ring:hsl(var(--edition-hue) 50% 86%);
+ --surface:hsl(var(--edition-hue) 35% 97%);
+ --selected:hsl(var(--edition-hue) 55% 90%);
+ --solid:hsl(var(--edition-hue) var(--edition-saturation) 27%);
+ --on-solid:#fff;--focus:hsl(var(--edition-hue) var(--edition-saturation) 38%);
+ --green:var(--accent);--deep:var(--solid);--sage:var(--accent-soft);--gold:var(--focus);
+ --warning-bg:#fff4df;--warning-ink:#79500e;--warning-line:#d4b97e;
+ --shadow:hsl(var(--edition-hue) 25% 15% / .12);
+ --header:hsl(var(--edition-hue) 30% 99% / .96);
+}
+:root[data-edition][data-theme=dark]{
+ --bg:hsl(var(--edition-hue) 15% 6%);--paper:hsl(var(--edition-hue) 15% 11%);
+ --ink:hsl(var(--edition-hue) 24% 93%);--muted:hsl(var(--edition-hue) 15% 71%);
+ --line:hsl(var(--edition-hue) 20% 25%);
+ --accent:hsl(var(--edition-hue) 78% 76%);
+ --accent-bright:hsl(var(--edition-hue) 80% 68%);
+ --accent-soft:hsl(var(--edition-hue) 27% 15%);
+ --accent-line:hsl(var(--edition-hue) 32% 40%);
+ --hero:hsl(var(--edition-hue) 34% 17%);
+ --hero-end:hsl(var(--edition-secondary) 25% 12%);
+ --hero-ring:hsl(var(--edition-hue) 38% 24%);
+ --surface:hsl(var(--edition-hue) 18% 13%);
+ --selected:hsl(var(--edition-hue) 36% 23%);
+ --solid:hsl(var(--edition-hue) var(--edition-saturation) 27%);
+ --on-solid:#fff;--focus:hsl(var(--edition-hue) 80% 76%);
+ --warning-bg:#302513;--warning-ink:#f4d292;--warning-line:#6c532b;
+ --shadow:#0006;--header:hsl(var(--edition-hue) 17% 9% / .96);
+}
+/* Silver stays silver at night, rather than becoming blue. */
+:root[data-edition=silver][data-theme=dark]{--accent:hsl(218 16% 79%);--accent-bright:hsl(218 18% 70%);--solid:hsl(218 18% 27%)}
+:root[data-edition] body{background:var(--bg);color:var(--ink);accent-color:var(--accent)}
+:root[data-edition] :is(.app-header,.bottom-nav){background:var(--header)}
+:root[data-edition] :is(.mon-card,.item-list,.bag-actions,.starter-choice,.setting-check,.edition-choice,.search-field,.location-sources,.return-card,.series-card,.account-panel,.setup-panel){background:var(--paper);border-color:var(--line)}
+:root[data-edition] .series-card{border-top-color:var(--series-color)}
+:root[data-edition] :is(.route-hero,.collection-overview,.dex-progress,.next-area,.starter-panel,.species-hero){background:linear-gradient(125deg,var(--hero),var(--hero-end));border-color:var(--accent-line)}
+:root[data-edition] .route-hero:before{border-color:var(--hero-ring)}
+:root[data-edition] .route-trail{border-color:var(--accent-line)}
+:root[data-edition] :is(.change-place,.tool-pill,.icon-button,.secondary,.caught-mini,.form-field select,.account-field input){background:var(--surface);color:var(--accent);border-color:var(--line)}
+:root[data-edition] :is(.form-field select,.account-field input){color:var(--ink)}
+:root[data-edition] .edition-switch{background:var(--selected);color:var(--accent);border-color:var(--accent-line);box-shadow:inset 0 0 0 1px var(--paper)}
+:root[data-edition] :is(.primary,.side-route.active,.filter-pill.active){background:var(--solid);border-color:var(--solid);color:var(--on-solid)}
+:root[data-edition] :is(.nav-item.active,.platform-side-link.active,.side-route:hover,.picker-row.current,.edition-choice.selected,.starter-choice.selected,.game-choice.selected,.setting-check:has(input:checked)){background:var(--selected);color:var(--accent);border-color:var(--accent-line)}
+:root[data-edition] .side-route.active:hover{background:var(--solid);color:var(--on-solid)}
+:root[data-edition] .side-route .route-dot{background:var(--surface);border-color:var(--line);color:var(--muted)}
+:root[data-edition] .side-route.active .route-dot{background:var(--paper);border-color:var(--paper);color:var(--solid)}
+:root[data-edition] :is(.route-kicker,.route-trail button,.current-dot,.dex-progress>div,.next-area>div,.route-region,.picker-region,.route-number,.here-tag,.source-tag,.new-tag,.tab-count,.count-badge,.route-tab.active){color:var(--accent)}
+:root[data-edition] :is(.new-tag,.count-badge,.tab-count,.source-tag,.route-tab.active .tab-count){background:var(--accent-soft)}
+:root[data-edition] :is(.mon-time,.dex-number,.mon-method,.dex-note,.route-footnote,.side-route,.nav-item,.filter-pill,.item-row-text small,.bag-action small,.about-panel>p,.about-panel details p,.source-row>span,.source-row>small,.caught-details>summary,.plain-details>summary,.form-field){color:var(--muted)}
+:root[data-edition] :is(.search-field input,.sheet){color:var(--ink)}
+:root[data-edition] .search-field input::placeholder{color:var(--muted)}
+:root[data-edition] .search-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--selected)}
+:root[data-edition] :is(button,a,label,input,select,summary):focus-visible{outline-color:var(--focus)}
+:root[data-edition] :is(.item-row,.bag-action,.catch-control,.source-row,.picker-row){border-color:var(--line)}
+:root[data-edition] .catch-control{background:var(--surface);color:var(--accent)}
+:root[data-edition] :is(.catch-control:hover,.catch-control.is-caught){background:var(--selected);color:var(--accent)}
+:root[data-edition] :is(.catch-symbol,.item-catch>span){border-color:var(--accent-line);color:var(--accent)}
+:root[data-edition] :is(.catch-control.is-caught .catch-symbol,.item-catch:has(input:checked)>span){background:var(--solid);border-color:var(--solid);color:var(--on-solid)}
+:root[data-edition] .is-later{background:var(--surface);border-color:var(--line)}
+:root[data-edition] .is-later .catch-control{background:var(--accent-soft);color:var(--accent)}
+:root[data-edition] :is(.caught-details,.empty-state,.notice,.evolution-line,.about-panel,.later-section .count-badge){background:var(--accent-soft);border-color:var(--line);color:var(--muted)}
+:root[data-edition] .empty-state>.icon{color:var(--accent)}
+:root[data-edition] :is(.gear-hint,.item-symbol.hidden){background:var(--warning-bg);color:var(--warning-ink);border-color:var(--warning-line)}
+:root[data-edition] :is(.gear-hint .text-button,.is-later .mon-time,.condition-line,.source-row>.condition-line){color:var(--warning-ink)}
+:root[data-edition] :is(.sheet,.sheet-header){background:var(--paper)}
+:root[data-edition] .sheet{box-shadow:0 28px 100px var(--shadow)}
+:root[data-edition] .sheet::backdrop{background:var(--shadow)}
+:root[data-edition] :is(.item-symbol,.item-symbol.tree,.item-symbol.person){background:var(--selected);color:var(--accent)}
+:root[data-edition] .item-position{background:var(--surface)}
+:root[data-edition] .item-position rect{fill:var(--selected);stroke:var(--accent-line)}
+:root[data-edition] .current-dot:before{background:var(--accent);box-shadow:0 0 0 3px var(--selected)}
+:root[data-edition] .brand-ball{border-color:var(--accent);background:linear-gradient(var(--accent) 0 46%,var(--paper) 46% 54%,var(--paper) 54%)}
+:root[data-edition] .brand-ball:after{background:var(--paper);border-color:var(--accent)}
+:root[data-edition] .toast{background:var(--solid);color:var(--on-solid);border:1px solid var(--accent-line);box-shadow:0 12px 35px var(--shadow)}
+:root[data-edition] .toast-undo{color:var(--on-solid)}
+:root[data-edition] .skip{background:var(--paper);color:var(--accent)}
+:root[data-edition] :is(.dex-progress progress,.collection-progress progress){background:var(--line);accent-color:var(--accent)}
+:root[data-edition] progress::-webkit-progress-bar{background:var(--line)}
+:root[data-edition] progress::-webkit-progress-value{background:var(--accent-bright)}
+:root[data-edition] progress::-moz-progress-bar{background:var(--accent-bright)}
+:root[data-edition] .mon-card:hover{border-color:var(--accent-line)}
+:root[data-edition] :is(.bag-action>.icon,.search-field>.icon){color:var(--accent)}
+:root[data-edition] .mon-open .sprite{filter:drop-shadow(0 4px 0 var(--shadow))}
+
+.sprite-frlg{background-image:url('./pokemon-sprites-frlg.webp');background-size:1600% 2500%}
+
+:root[data-edition] .later-section .section-title h2{color:var(--muted)}
+/* Dark palettes use quiet depth and a brighter edition accent on interactive edges. */
+:root[data-edition][data-theme=dark]{--edition-glow:hsl(var(--edition-hue) 80% 60% / .09);--edition-edge:hsl(var(--edition-hue) 55% 65% / .13)}
+:root[data-edition][data-theme=dark] body{background:radial-gradient(ellipse at 80% 0%,var(--edition-glow),transparent 58vh),var(--bg);background-attachment:fixed}
+:root[data-edition][data-theme=dark] :is(.route-hero,.collection-overview){background:radial-gradient(ellipse at 100% 0%,hsl(var(--edition-hue) 65% 50% / .14),transparent 65%),linear-gradient(125deg,var(--hero),var(--hero-end));border-color:var(--edition-edge);box-shadow:inset 0 1px 0 hsl(var(--edition-hue) 65% 85% / .06),0 16px 40px #0002}
+:root[data-edition][data-theme=dark] :is(.mon-card,.series-card,.setup-panel,.account-panel){box-shadow:inset 0 1px 0 hsl(var(--edition-hue) 30% 90% / .035),0 5px 18px #0002}
+:root[data-edition][data-theme=dark] .edition-switch{box-shadow:inset 0 1px 0 var(--edition-edge),0 0 18px var(--edition-glow)}
+:root[data-edition][data-theme=dark] .primary{background:linear-gradient(145deg,hsl(var(--edition-hue) var(--edition-saturation) 27%),hsl(var(--edition-hue) var(--edition-saturation) 20%));border-color:hsl(var(--edition-hue) 55% 65% / .28);box-shadow:inset 0 1px 0 hsl(var(--edition-hue) 90% 90% / .11),0 4px 16px #0003}
+:root[data-edition][data-theme=dark] .bottom-nav{box-shadow:0 8px 35px #0005,inset 0 1px 0 var(--edition-edge)}
+:root[data-edition][data-theme=dark] :is(.nav-item.active,.platform-side-link.active){box-shadow:inset 0 0 0 1px var(--edition-edge)}
+:root[data-edition][data-theme=dark] .mon-card:hover{border-color:var(--accent-line);box-shadow:0 0 0 1px var(--edition-edge),0 8px 24px #0003}
+@media(prefers-reduced-motion:no-preference){:root[data-edition] :is(.mon-card,.game-choice,.edition-switch,.primary){transition:background-color .16s,border-color .16s,box-shadow .16s}}

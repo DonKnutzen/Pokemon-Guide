@@ -4,10 +4,25 @@
   let preference;
   try { preference = localStorage.getItem(key); } catch {}
   if (!['light', 'dark'].includes(preference)) preference = null;
+  const updateChrome = () => {
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    if (color) {
+      const probe = document.createElement('span');
+      probe.style.color = color;
+      document.documentElement.append(probe);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(probe).color);
+      probe.remove();
+    }
+  };
+  // Restore the edition before the app loads to avoid flashing the default palette.
+  try {
+    const edition = localStorage.getItem('pokeguide:edition-theme');
+    if (['red','blue','yellow','gold','silver','crystal','ruby','sapphire','emerald','firered','leafgreen'].includes(edition)) document.documentElement.dataset.edition = edition;
+  } catch {}
   const apply = () => {
     const dark = (preference || (system.matches ? 'dark' : 'light')) === 'dark';
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#141c19' : '#203e35');
+    updateChrome();
     const toggle = document.getElementById('theme-toggle');
     if (toggle) {
       toggle.textContent = dark ? '☀' : '☾';
@@ -16,6 +31,7 @@
       toggle.title = dark ? 'Heller Modus' : 'Dunkler Modus';
     }
   };
+  new MutationObserver(updateChrome).observe(document.documentElement, {attributes:true,attributeFilter:['data-edition']});
   apply();
   system.addEventListener('change', () => { if (!preference) apply(); });
   const bind = () => {

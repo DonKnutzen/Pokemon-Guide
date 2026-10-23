@@ -61,3 +61,5 @@ Die ausgeschnittenen PDF-Übersichten sind Referenzen. Marker erscheinen auf den
 `build_platform_species.py` ergänzt den Namensindex bis #386 und die originalen Smaragd-Sprites für #252–386. Beide Quellen sind im Skript mit Commit-SHAs fixiert; der neue PNG-Atlas enthält die 64×64-Originalbilder ohne Skalierung. Die alten Gold-Atlanten bleiben erhalten.
 
 `verify_cloud_schema.mjs` prüft die Supabase-Migration in einer isolierten PostgreSQL-Instanz. Aufruf und Aktivierung des Backends stehen in [supabase/README.md](../supabase/README.md).
+
+`build_kanto_sprites.py` erzeugt den verlustfreien FR/LG-WebP-Atlas für Rot/Blau/Gelb und Feuerrot/Blattgrün. Alle 386 Bilder stammen aus dem im Skript fixierten PokeAPI/sprites-Commit; die Pixel des decodierten Atlas werden vollständig gegen die Originale geprüft.

@@ -16,7 +16,7 @@ Items stehen direkt unter den offenen Pokémon jedes Gebiets: sichtbare und vers
 
 Der Pokédex zeigt alle 251 Arten mit editionsabhängigen Fangquellen, Entwicklungen, Zucht und nötigem externen Tausch. Eine Entwicklung wird nicht automatisch als erhalten gewertet, wenn du ihre Vorentwicklung fängst. Pokémon anderer Editionen werden nicht als lokale Wildfänge angeboten.
 
-Mit dem Mond-/Sonnenknopf oben wechselst du zwischen Hell und Dunkel. Die Auswahl bleibt auf deinem Gerät gespeichert; ohne eigene Auswahl folgt die App dem Systemdesign.
+Mit dem Mond-/Sonnenknopf oben wechselst du zwischen Hell und Dunkel. Alle elf Editionen haben eine eigene Farbpalette in beiden Modi: Rot, Blau, Gelb, Gold, Silber, Kristall, Rubin, Saphir, Smaragd, Feuerrot und Blattgrün. Die Farbwelt wechselt automatisch mit der ausgewählten Edition, einschließlich Kartenflächen, Navigation, Buttons und Browserleiste. Die Hell-/Dunkel-Auswahl bleibt auf deinem Gerät gespeichert; ohne eigene Auswahl folgt die App dem Systemdesign.
 
 ## Spielreihen und Pokédexe
 
@@ -54,6 +54,7 @@ Pro Edition sind 136 sichtbare Bodenfunde, 87 versteckte Fundstellen, 107 Gespr�
 - Fang- und Funddaten sowie Entwicklungsregeln: [pret/pokegold](https://github.com/pret/pokegold/tree/fc702b6d922aecce274782d68bba8639936a1182).
 - Deutsche Namen: [PokéAPI](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv), ergänzt um historische Itemnamen.
 - **Alle 251 Bilder werden lokal mitgeliefert:** originale Gold-Pixelbilder aus [PokeAPI/sprites](https://github.com/PokeAPI/sprites/tree/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/versions/generation-ii/gold/transparent), in zwei kompakten Bilddateien. Die Gold-Darstellungen werden für beide Editionen verwendet. Zur Laufzeit gibt es keine fremden Bildabrufe.
+- **Rot/Blau/Gelb und Feuerrot/Blattgrün verwenden FR/LG-Sprites** aus [PokeAPI/sprites](https://github.com/PokeAPI/sprites/tree/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/versions/generation-iii/firered-leafgreen), einschließlich der jeweiligen Auswahlkarten. Der lokale verlustfreie Atlas enthält alle 386 nationalen Arten in originalen 64 × 64 Pixeln. Gold/Silber/Kristall behalten die bisherigen Gold-Darstellungen.
 - Die früheren Story-Daten basieren auf der vom Projektinhaber bereitgestellten Nintendo-Power-Komplettlösung **Pokémon Gold & Silver (2000)**. Das vollständige PDF wird nicht veröffentlicht; enthalten sind ausschließlich die ausgewählten Kartenausschnitte.
 
 Zugangsvoraussetzungen wurden für die empfohlene Reise kuratiert; Sonderfälle können zusätzliche Prüfung benötigen. Historische Verteilungen über externe Geräte und vollständige Attackentabellen sind nicht enthalten.

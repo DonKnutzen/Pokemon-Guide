@@ -1,6 +1,7 @@
 import {games,series,gameById,seriesById} from '../data/catalog.js';
 import {speciesIndex} from '../data/species-index.js';
 import {caughtIn,allCaught,catchRecord,markCaught,hasProgress,importLibrary} from './platform-model.js';
+import {spritePresentation} from './sprite-model.js';
 import {authError} from './cloud.js';
 
 export function platformUI(ctx){
@@ -8,9 +9,9 @@ export function platformUI(ctx){
  const lib=()=>ctx.library(),selected=()=>gameById(lib().selectedEdition),group=()=>seriesById(selected().series);
  let filter='missing',query='',mode='login';
  const go=hash=>{if(location.hash===hash)ctx.render();else location.hash=hash;};
- function sprite(id){
-  const index=id>251?id-252:(id-1)%128,s=el('span','sprite '+(id>251?'sprite-hoenn':id>128?'sprite-second':''));
-  s.style.backgroundPosition=(index%16/15*100)+'% '+(Math.floor(index/16)/(id>251?8:7)*100)+'%';s.setAttribute('role','img');s.setAttribute('aria-label',speciesIndex[id-1].name);return s;
+ function sprite(id,scope=selected().series){
+  const view=spritePresentation(id,scope),s=el('span','sprite '+view.className);
+  s.style.backgroundPosition=view.x+'% '+view.y+'%';s.setAttribute('role','img');s.setAttribute('aria-label',speciesIndex[id-1].name);return s;
  }
  function title(eyebrow,heading,text){const h=el('header','page-header');h.append(el('div','eyebrow',eyebrow),el('h1','',heading));if(text)h.append(el('p','muted',text));main.append(h);}
  function progress(count,max,caption){const box=el('div','collection-progress');const line=el('div');line.append(el('strong','',count+' / '+max),el('span','',caption));const bar=el('progress');bar.max=max;bar.value=count;bar.setAttribute('aria-label',caption);box.append(line,bar);return box;}
@@ -23,7 +24,7 @@ export function platformUI(ctx){
   const grid=el('div','series-grid');
   for(const s of series){
    const card=el('section','series-card');card.style.setProperty('--series-color',s.color);const top=el('div','series-card-head');top.append(el('span','eyebrow','GENERATION '+s.generation),el('span','region-tag',s.region));card.append(top,el('h2','',s.name));
-   const starters=el('div','series-starters');for(const id of s.starters)starters.append(sprite(id));card.append(starters,progress(caughtIn(lib(),s.id).length,s.max,'im gemeinsamen Pokédex'));
+   const starters=el('div','series-starters');for(const id of s.starters)starters.append(sprite(id,s.id));card.append(starters,progress(caughtIn(lib(),s.id).length,s.max,'im gemeinsamen Pokédex'));
    const choices=el('div','game-choices');for(const game of games.filter(g=>g.series===s.id)){
     const b=button(game.name,'game-choice'+(lib().selectedEdition===game.id?' selected':'')+(game.guide?' guide-ready':''),()=>ctx.select(game.id),game.guide?'compass':undefined);b.style.setProperty('--game-color',game.color);b.setAttribute('aria-label',game.name+(game.guide?' · Guide öffnen':' · Sammlung öffnen'));if(lib().selectedEdition===game.id)b.setAttribute('aria-pressed','true');choices.append(b);
    }card.append(choices,el('p','guide-state',s.id==='gsc'?'Gold & Silber: Routen, Pokémon und Fundkarten':'Pokédex bereit · Routen- und Itemguide folgt'));
