@@ -37,9 +37,9 @@ Der neue Browser-Speicher heißt `pokeguide:library:v2:guest`. Beim ersten Laden
 
 JSON-Sicherungen enthalten jetzt alle vier Reihen und alle Durchläufe. Alte Gold/Silber-Sicherungen können weiterhin ergänzend importiert werden. Importieren fügt positive Fortschritte hinzu und löscht keine vorhandene Sammlung. Theme und Anmeldetokens gehören nicht zur Sicherung.
 
-**Kontostatus:** Anmeldung und Synchronisation sind implementiert, aber auf der veröffentlichten Seite erst nach Verbindung eines eigenen Supabase-Projekts aktiv. Ohne Konfiguration zeigt die Kontoseite den tatsächlichen lokalen Status. Einrichtung: [supabase/README.md](supabase/README.md).
+**Kontostatus:** Registrierung und Anmeldung verwenden **Nutzername + eine vierstellige PIN aus Buchstaben und Zahlen**. Eine E-Mail-Adresse oder Bestätigung ist nicht erforderlich. Beim Nutzernamen spielt Groß-/Kleinschreibung keine Rolle; bei der PIN schon. Die öffentliche Projektkonfiguration ist in der Website hinterlegt. Einrichtung und technische Details: [supabase/README.md](supabase/README.md).
 
-Mit konfiguriertem Backend gibt es Registrierung, E-Mail-Bestätigung, Anmeldung, Passwort-Zurücksetzen und Abmeldung. Nach der Anmeldung wird ein getrennter Cache für die jeweilige Nutzer-ID verwendet. Die lokale Gastsammlung wird nur über „Lokale Sammlung übernehmen“ zum Konto hinzugefügt. Konten werden nicht automatisch vermischt. Passwortprüfung und Sitzungserneuerung übernimmt Supabase Auth; Passwörter werden nicht in den Fortschritt geschrieben.
+Nach der Anmeldung wird ein getrennter Cache für die jeweilige Nutzer-ID verwendet. Die lokale Gastsammlung wird nur über „Lokale Sammlung übernehmen“ zum Konto hinzugefügt. Konten werden nicht automatisch vermischt. Die PIN wird ausschließlich auf dem Server geprüft und als gesalzener bcrypt-Hash in einem privaten Schema gespeichert. Fehlversuche werden pro Nutzername und IP begrenzt. Die App speichert keine PIN; die Sitzung wird über Supabase Auth erneuert. Ohne E-Mail-Adresse kann eine vergessene PIN nicht selbst zurückgesetzt werden.
 
 Cloud-Daten werden pro Nutzer und unabhängigem Fortschrittsfeld gespeichert. Jeder Fang, Fund, Ausrüstungswechsel und die aktuelle Route haben eigene Änderungsstände. Rücknahmen bleiben als `false` gespeichert. Gleichzeitige Änderungen auf verschiedenen Geräten werden zusammengeführt; bei Änderungen desselben Felds gewinnt der neuere logische Zeitstempel. Offline-Änderungen bleiben bis zum nächsten erfolgreichen Abgleich ausstehend. Die Synchronisierung läuft nach Änderungen, beim erneuten Öffnen der App und bei wiederhergestellter Verbindung. Für ein geöffnetes zweites Gerät gibt es außerdem „Jetzt synchronisieren“ im Konto. Es gibt kein permanentes Realtime-Abonnement.
 
@@ -61,7 +61,7 @@ Zugangsvoraussetzungen wurden für die empfohlene Reise kuratiert; Sonderfälle 
 
 ## Hosting und Entwicklung
 
-GitHub Pages verwendet **main → /docs**. Änderungen auf `main` werden automatisch veröffentlicht; es gibt keinen Build-Schritt und keinen Server auf GitHub. Supabase Auth/PostgREST wird nur bei konfiguriertem Konto angesprochen. Das offizielle Supabase-SDK 2.118.0 liegt lokal unter `docs/vendor/` und wird erst für die Anmeldung geladen.
+GitHub Pages verwendet **main → /docs**. Änderungen auf `main` werden automatisch veröffentlicht; es gibt keinen Build-Schritt und keinen Server auf GitHub. Die Anmeldung nutzt eine Supabase Edge Function; angemeldete Konten gleichen ihren Fortschritt über Supabase Auth/PostgREST ab. Das offizielle Supabase-SDK 2.118.0 liegt lokal unter `docs/vendor/` und wird erst für die Anmeldung geladen.
 
 ```sh
 python3 -m http.server 8080 --directory docs

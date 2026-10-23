@@ -1,0 +1,3 @@
+# This public endpoint validates the trainer PIN itself before issuing a session.
+[functions.trainer-auth]
+verify_jwt = false

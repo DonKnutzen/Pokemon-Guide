@@ -1,47 +1,33 @@
-# Konten für PokéGuide aktivieren
+# Trainerkonten mit Nutzername und PIN
 
-Die Website bleibt unter https://donknutzen.github.io/Pokemon-Guide/. Supabase stellt Anmeldung und die private Fortschrittsdatenbank bereit. Im Repository sind Oberfläche, Schema und Synchronisierung vorbereitet; ohne Projektkonfiguration ist die Live-Seite lokal nutzbar und zeigt noch keine Registrierungsformulare.
+Die Website liegt weiter unter https://donknutzen.github.io/Pokemon-Guide/. Supabase übernimmt Anmeldung, Sitzungen und die private Fortschrittsdatenbank. Die veröffentlichte App ist mit dem Projekt `wrmlkpuhyqxkehbvzoxx` verbunden.
 
-## Einmalige Einrichtung
+## Nutzung
 
-1. Im eigenen Supabase-Konto ein Projekt im Free-Tarif anlegen. In dieser Änderung wird kein Projekt angelegt und kein kostenpflichtiger Tarif gebucht.
-2. Im SQL Editor den Inhalt von [`migrations/001_progress.sql`](migrations/001_progress.sql) einmal ausführen. Bei einem bereits angewendeten Schema die Migration nicht erneut ausführen.
-3. Unter Authentication → URL Configuration die **Site URL** auf `https://donknutzen.github.io/Pokemon-Guide/` setzen und diese URL in die zulässigen Redirect URLs aufnehmen. Falls der Anbieter Hash-Rücksprünge separat prüft, außerdem `https://donknutzen.github.io/Pokemon-Guide/#account` zulassen. E-Mail/Passwort aktivieren; E-Mail-Bestätigung eingeschaltet lassen. Die App verlangt für neue Passwörter mindestens 10 Zeichen; dieselbe Mindestlänge im Projekt einstellen.
-4. Projekt-URL und **publishable key** aus den Project Settings/API Keys in [`../docs/data/cloud-config.js`](../docs/data/cloud-config.js) eintragen. Alternativ wird ein früherer `anon`-JWT akzeptiert. Diese beiden Werte sind öffentliche Browserkonfiguration. **Keine** Secret-, `service_role`-, Datenbankpasswörter oder persönlichen Zugriffstokens in das Repository schreiben.
-5. Auf `main` übernehmen und den erfolgreichen Pages-Deploy abwarten. Die Kontoseite bietet dann Registrierung, Login und Passwort-Zurücksetzen an.
-6. Mit einem eigenen Testkonto Registrierung und E-Mail-Bestätigung durchführen. Anschließend auf zwei Geräten anmelden, unterschiedliche Fänge/Items erfassen, „Jetzt synchronisieren“ nutzen und eine Rücknahme prüfen.
+Auf der Kontoseite „Neues Trainerkonto erstellen“ wählen. Benötigt werden ein Nutzername mit 3–24 Zeichen (ASCII-Buchstaben, Zahlen, `_`, `-`) und genau vier Buchstaben oder Zahlen als PIN. Namen sind unabhängig von Groß-/Kleinschreibung eindeutig, PINs unterscheiden sie. Die Registrierung meldet direkt an; es wird keine E-Mail versendet.
 
-Eine vorhandene lokale Sammlung wird nach dem Anmelden als separate Übernahme angeboten. Nach Übernahme bleiben die lokalen Originaldaten erhalten. Bei Abmeldung wechselt die App zur lokalen Gastsammlung, während der Kontostand in einem eigenen Cache und in der Datenbank bleibt.
+Die lokale Gastsammlung wird nur durch „Lokale Sammlung übernehmen“ zum Konto hinzugefügt. Abmelden öffnet wieder die Gastsammlung. Fänge sind pro Reihe gemeinsam, Items und Reisen pro Edition getrennt. Eine vergessene PIN lässt sich ohne unabhängigen Identitätsnachweis nicht selbst zurücksetzen.
 
-## Daten und Zugriffsrechte
+## Eigenes Projekt einrichten
 
-`pokeguide_records` enthält nur `user_id`, Fortschrittsschlüssel, Wert, logischen Änderungsstempel und Aktualisierungszeit. E-Mail/Passwort werden von Supabase Auth verwaltet. `auth.uid()` bestimmt die Eigentümer-ID; es wird keine vom Browser angegebene Nutzer-ID für Schreibzugriffe verwendet. Row Level Security gilt für Lesen, Anlegen und Aktualisieren. Anonyme Zugriffe auf Tabelle und Schreibfunktion sind gesperrt.
+1. Alle SQL-Dateien aus `migrations/` in Dateireihenfolge einmal anwenden. Bereits angewendete Migrationen nicht wiederholen. `pgcrypto` muss unter `extensions` verfügbar sein (im verbundenen Projekt bereits installiert).
+2. `functions/trainer-auth/` als Edge Function `trainer-auth` deployen. Die Konfiguration `verify_jwt = false` ist beabsichtigt: Der öffentliche Login-Endpunkt authentifiziert selbst anhand von Nutzername und PIN. Auth-JWTs gibt es erst danach. Beispielsweise mit `supabase functions deploy trainer-auth --project-ref <ref>`; die Konfiguration steht in `config.toml`.
+3. Die Standard-Umgebungsvariablen `SUPABASE_URL`, `SUPABASE_ANON_KEY` und `SUPABASE_SERVICE_ROLE_KEY` stehen dem gehosteten Edge-Runtime zur Verfügung. Der Service-Schlüssel darf ausschließlich dort verwendet werden, niemals im Browser oder im Repository.
+4. Projekt-URL und **publishable key** in `docs/data/cloud-config.js` hinterlegen. Diese Konfiguration ist öffentlich; `service_role`- oder Secret-Schlüssel gehören dort niemals hinein.
+5. Bei einer anderen Website-Adresse die erlaubten CORS-Ursprünge in `functions/trainer-auth/index.ts` anpassen und erneut deployen. Die Standardadresse sowie lokale Vorschauen sind hinterlegt. E-Mail-Redirects sind für diesen Login nicht nötig.
 
-Die Funktion `apply_pokeguide_records` läuft mit `SECURITY INVOKER`, behält die RLS-Prüfung bei und führt neuere Änderungen pro Schlüssel atomar zusammen. Batches sind auf 400 Einträge und 1 MiB begrenzt. Rücknahmen bleiben als Werte erhalten, statt Datensätze zu löschen. API-Anfragen tragen den zum Beginn des Abgleichs festgehaltenen Nutzertoken, sodass ein Kontowechsel laufende Daten nicht in ein anderes Konto verschiebt.
+## Authentifizierung und Datenzugriff
 
-Gastsammlung und Konten haben getrennte lokale Speicher. Ein Kontowechsel bricht die Annahme alter Antworten ab. Ein gescheiterter Schreibvorgang bleibt ausstehend. Eine während eines Schreibvorgangs neu vorgenommene Änderung wird erst nach Bestätigung ihres eigenen Stempels als synchronisiert behandelt.
+`pokeguide_private.trainers` enthält normalisierten Nutzernamen, Anzeigenamen, Nutzer-ID, internen zufälligen Auth-Alias und gesalzenen bcrypt-Hash (Kostenfaktor 12). Das Schema ist nicht in der Data API exponiert; `anon` und `authenticated` haben weder Schema- noch Tabellenzugriff. RLS ist auch für die privaten Tabellen aktiviert. PINs werden nicht geloggt, in Metadaten gespeichert oder an den Browser zurückgegeben.
 
-## Prüfungen
+Die zwei `SECURITY DEFINER`-Funktionen für die PIN-Prüfung und Registrierung haben einen leeren `search_path` und sind ausschließlich für `service_role` ausführbar. Ein atomarer Zähler begrenzt auf fünf Versuche pro Nutzername und 90 pro IP in 15 Minuten; ein erfolgreicher Login setzt nur den Namenszähler zurück. Unbekannte Namen durchlaufen ebenfalls bcrypt. Die Limit-Einträge werden beim nächsten Versuch nach Ablauf des Zeitfensters wiederverwendet.
 
-```sh
-npm test
-```
+Nach erfolgreicher PIN-Prüfung erzeugt die Edge Function serverseitig einen einmaligen Supabase-Loginbeweis und löst ihn sofort ein. Es wird keine E-Mail versendet. Der Browser erhält nur eine normale Auth-Sitzung und verwendet das lokal mitgelieferte offizielle SDK zur Sitzungserneuerung. Die internen Auth-Konten verwenden zufällige Alias-Adressen und zufällige lange Passwörter; die vierstellige PIN wird nicht als Supabase-Passwort eingesetzt.
 
-Die Tests prüfen Migration, Reihenfreigabe, Editionsgrenzen, alte Backups, konkurrierende Änderungen, Rücknahmen, Offline-Zustände, paginierte Synchronisierung und Tokenbindung mit dem tatsächlich mitgelieferten SDK.
+`public.pokeguide_records` ist durch RLS auf `auth.uid() = user_id` begrenzt. Die Fortschritts-RPC `apply_pokeguide_records` läuft als `SECURITY INVOKER`; sie kann keine Berechtigungen erweitern. Anonyme Besucher haben keinen Fortschrittszugriff. Konten verwenden getrennte Browser-Caches und Synchronisationsvorgänge bleiben an die ursprüngliche Sitzung gebunden.
 
-Das Schema lässt sich zusätzlich in einer lokalen PostgreSQL-Instanz über PGlite prüfen. Das Hilfsskript greift auf keine echte Supabase-Datenbank zu:
+## Prüfung
 
-```sh
-npm install --prefix /tmp/pokeguide-postgres-qa @electric-sql/pglite --no-save --ignore-scripts --no-package-lock
-node tools/verify_cloud_schema.mjs /tmp/pokeguide-postgres-qa/node_modules/@electric-sql/pglite/dist/index.js
-```
+`npm test` prüft unter anderem getrennte Konten-/Reihenmodelle, Offline-Zusammenführung und an die ursprüngliche Sitzung gebundene Requests mit dem echten Supabase-SDK. Die Anmeldung wird zusätzlich gegen das gehostete Backend geprüft: Registrierung, PIN-Format, falsche PIN, Namensnormalisierung, Versuchslimits, erneute Anmeldung, Sitzungserneuerung sowie gegenseitiger Zugriffsschutz zweier Konten.
 
-Es prüft Migration, zwei getrennte Konten, verweigerte fremde Eigentümer-IDs, gesperrte anonyme Zugriffe und das Verwerfen älterer Schreibvorgänge. **Die echte Registrierung, E-Mail-Zustellung und der Abgleich zweier Geräte müssen nach Verbindung des Projekts separat geprüft werden.**
-
-## Primärdokumentation
-
-- https://supabase.com/docs/guides/auth/passwords
-- https://supabase.com/docs/reference/javascript/auth-signup
-- https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail
-- https://supabase.com/docs/guides/database/postgres/row-level-security
-- https://supabase.com/docs/guides/getting-started/api-keys
+Der optionale Live-Test `node tools/verify_trainer_auth.mjs` erstellt zwei neue Testkonten. Mit `QA_RECEIPT=/tmp/pokeguide-qa.json` werden deren IDs für eine gezielte anschließende Bereinigung durch den Projektadministrator festgehalten. Zugangsdaten und Sitzungstokens werden nicht ausgegeben. Der Live-Test gehört nicht zum normalen `npm test`.

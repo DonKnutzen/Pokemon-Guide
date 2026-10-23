@@ -1,6 +1,5 @@
-// Public browser configuration only. Never place a secret/service_role key here.
-// Enable after applying supabase/migrations/001_progress.sql to your own project.
+// Public browser configuration. Access is restricted by Supabase Auth and row-level policies.
 export const cloudConfig = {
- url: '',
- publishableKey: ''
+  "url": "https://wrmlkpuhyqxkehbvzoxx.supabase.co",
+  "publishableKey": "sb_publishable_5hx44EPcvsxp_wJ8TK5vrw_vkI-ee26"
 };

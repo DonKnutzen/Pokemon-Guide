@@ -10,12 +10,12 @@ import {positionFor,mappedItems,itemMarker,focusBox} from './item-map-model.js';
 import {games,series,gameById,seriesById} from '../data/catalog.js';
 import {emptyLibrary,restoreLibrary,GUEST_KEY,accountKey,guideView,applyGuideView,migrateLegacy,caughtIn,allCaught,catchRecord,importLibrary,pendingRows,markCaught,writeRecord,mergeDeviceLibrary} from './platform-model.js';
 import {spritePresentation} from './sprite-model.js';
-import {platformUI} from './platform-ui.js?v=7';
-import {configured,connectCloud,authError} from './cloud.js';
+import {platformUI} from './platform-ui.js?v=8';
+import {configured,connectCloud,authError} from './cloud.js?v=8';
 import {syncLibrary} from './sync-engine.js';
 const LEGACY_KEY='pokeguide:progress:'+guide.id+':v1';
 const device=Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
-let owner=null,cloud=null,cloudUser=null,syncTimer,cloudEpoch=0,syncing=null,cloudLoading=configured(),syncStatus='local',syncedAt=null,recovery=false;
+let owner=null,cloud=null,cloudUser=null,syncTimer,cloudEpoch=0,syncing=null,cloudLoading=configured(),syncStatus='local',syncedAt=null;
 const storageKey=()=>owner?accountKey(owner):GUEST_KEY;
 function loadLibrary(key){let value;try{value=JSON.parse(localStorage.getItem(key));}catch{}return restoreLibrary(value,device);}
 function loadGuest(){const value=loadLibrary(GUEST_KEY);try{migrateLegacy(value,JSON.parse(localStorage.getItem(LEGACY_KEY)),guide);}catch{}return value;}
@@ -68,8 +68,8 @@ async function doSync(){
  finally{if(syncing===job)syncing=null;if(epoch===cloudEpoch&&job.again)scheduleSync();}})();return job.promise;
 }
 function refreshCloudChrome(){const account=$('#account-link');if(account){account.classList.toggle('is-synced',!!cloudUser&&syncStatus==='synced');account.setAttribute('aria-label',cloudUser?'Dein Konto · '+(syncStatus==='synced'?'synchronisiert':'lokal gespeichert'):'Anmelden / Konto');}if(route.page==='account')render();}
-async function sessionChanged(session,event){
- cloudLoading=false;if(event==='PASSWORD_RECOVERY'){recovery=true;location.hash='account';}
+async function sessionChanged(session){
+ cloudLoading=false;
  const id=session?.user?.id||null;cloudUser=session?.user||null;
  if(id!==owner){clearTimeout(syncTimer);cloudEpoch++;owner=id;library=id?loadLibrary(accountKey(id)):loadGuest();state=guideView(library,guide);route=readRoute();syncedAt=null;syncStatus=id?'pending':'local';render();}
  else refreshCloudChrome();
@@ -230,7 +230,7 @@ $('#backup-file').addEventListener('change',async e=>{const file=e.target.files[
  persistOnly();render();notify('Sicherung ergänzt. Deine bisherigen Fänge bleiben erhalten.');
  }catch(err){notify(err.message||'Sicherung konnte nicht geladen werden.');}finally{e.target.value='';}});
 function renderSidebar(){const side=$('#journey-sidebar');if(!ready()||['games','master','account'].includes(route.page)){side.replaceChildren();const head=el('div','sidebar-title');head.append(el('span','eyebrow','DEIN TRAINERBUCH'),el('h2','','Deine Abenteuer bleiben bei dir.'));side.append(head);for(const [hash,label,ico]of [['games','Spielesammlung','games'],['master','Gesamt-Pokédex','ball'],['account','Dein Konto','user']])side.append(link('#'+hash,label,'platform-side-link'+(route.page===hash?' active':''),ico));const foot=el('div','sidebar-foot');foot.append(sprite(25),el('span','',allCaught(library).length+' von 386 Arten gesammelt'));side.append(foot);return;}const scroll=side.querySelector('.sidebar-routes')?.scrollTop||0;side.replaceChildren();const head=el('div','sidebar-title');head.append(el('span','eyebrow','DEINE REISEROUTE'),el('h2','','Ein Gebiet nach dem anderen.'));side.append(head);const list=el('nav','sidebar-routes');list.setAttribute('aria-label','Gebiete in Spielreihenfolge');let region='';for(const [index,p]of data.locations.entries()){if(region!==p.region){region=p.region;list.append(el('h3','route-region',region==='johto'?'JOHTO & LIGA':'KANTO'));}const b=button('','side-route '+(co().lastLocation===p.id?'active':''),()=>navigate(p.id));b.setAttribute('aria-label',p.name+(co().lastLocation===p.id?' · aktuelles Gebiet':''));if(co().lastLocation===p.id)b.setAttribute('aria-current','location');b.append(el('span','route-dot',co().visited.includes(p.id)?'✓':String(index+1).padStart(2,'0')),el('span','',p.name));list.append(b);}side.append(list);list.scrollTop=scroll;const foot=el('div','sidebar-foot');foot.append(sprite(co().starter||152),el('div','','Dein Abenteuer. Dein Tempo.'));side.append(foot);}
-const platform=platformUI({el,button,link,icon,main,openSheet,smallSearch,normalize,notify,library:()=>library,select:selectGame,persistOnly,render,refreshChrome:()=>render(),cloud:()=>cloud,cloudState:()=>({configured:configured(),loading:cloudLoading,user:cloudUser,status:syncStatus,syncedAt,recovery}),guest:loadGuest,exportBackup,importBackup:()=>$('#backup-file').click(),lastLocation:()=>co().lastLocation,lastPlace:()=>place(co().lastLocation).name,sync:doSync,signOut:async()=>{clearTimeout(syncTimer);await cloud.signOut();},recovered:()=>{recovery=false;}});
+const platform=platformUI({el,button,link,icon,main,openSheet,smallSearch,normalize,notify,library:()=>library,select:selectGame,persistOnly,render,refreshChrome:()=>render(),cloud:()=>cloud,cloudState:()=>({configured:configured(),loading:cloudLoading,user:cloudUser,status:syncStatus,syncedAt}),guest:loadGuest,exportBackup,importBackup:()=>$('#backup-file').click(),lastLocation:()=>co().lastLocation,lastPlace:()=>place(co().lastLocation).name,sync:doSync,signOut:async()=>{clearTimeout(syncTimer);await cloud.signOut();}});
 function render(){document.documentElement.dataset.edition=library.selectedEdition;try{localStorage.setItem('pokeguide:edition-theme',library.selectedEdition);}catch{}$('#edition-switch').replaceChildren(document.createTextNode(editionName()+' '),el('span','','⌄'));const counter=$('#dex-counter');counter.replaceChildren(icon('ball'),el('span','',caughtIn(library,selectedGame().series).length+' / '+selectedSeries().max));main.replaceChildren();
  $('#main-nav').replaceChildren();for(const [key,title,ico]of [['games','Spiele','games'],['route','Reise','compass'],['dex','Pokédex','ball'],['bag','Rucksack','bag'],['account','Konto','user']]){const a=link(key==='route'?(ready()?'#route/'+co().lastLocation:'#route'):'#'+key,title,'nav-item',ico);a.id='nav-'+key;a.classList.toggle('active',route.page===key||key==='dex'&&route.page==='master'||key==='bag'&&route.page==='returns');if(route.page===key)a.setAttribute('aria-current','page');$('#main-nav').append(a);}
  renderSidebar();if(route.page==='games')platform.home();else if(route.page==='master')platform.dex(true);else if(route.page==='account')platform.account();else if(route.page==='dex'){if(ready())renderDex();else platform.dex(false);}else if(route.page==='bag'&&!ready())platform.bag();else if(!ready())platform.unavailable();else if(route.page==='returns')renderReturns();else if(route.page==='bag')renderBag();else renderRoute();

@@ -2,7 +2,7 @@ import {games,series,gameById,seriesById} from '../data/catalog.js';
 import {speciesIndex} from '../data/species-index.js';
 import {caughtIn,allCaught,catchRecord,markCaught,hasProgress,importLibrary} from './platform-model.js';
 import {spritePresentation} from './sprite-model.js';
-import {authError} from './cloud.js';
+import {authError} from './cloud.js?v=8';
 
 export function platformUI(ctx){
  const {el,button,link,icon,main,openSheet,smallSearch,normalize,notify}=ctx;
@@ -71,28 +71,32 @@ export function platformUI(ctx){
   if(info.loading){panel.append(el('p','muted','Anmeldung wird geladen …'));return;}
   if(!ctx.cloud()){panel.append(el('h2','','Verbindung gerade nicht verfügbar.'),el('p','muted','Deine Sammlung bleibt auf diesem Gerät gespeichert.'),button('Erneut verbinden','primary',()=>location.reload(),'cloud'));return;}
   if(info.user){
-   panel.append(el('span','source-tag','DEIN TRAINERKONTO'),el('h2','account-email',info.user.email||'Angemeldet'),el('p','sync-status',status()));
+   panel.append(el('span','source-tag','DEIN TRAINERKONTO'),el('h2','account-email',info.user.user_metadata?.trainer_name||info.user.user_metadata?.username||'Dein Trainerkonto'),el('p','sync-status',status()));
    if(info.syncedAt)panel.append(el('p','muted','Zuletzt synchronisiert: '+new Date(info.syncedAt).toLocaleString('de-DE')));
    panel.append(button(info.status==='syncing'?'Wird synchronisiert …':'Jetzt synchronisieren','primary',()=>ctx.sync(),'cloud'));
    const guest=ctx.guest();if(hasProgress(guest)&&!lib().migrations.includes('guest-import')){
     const box=el('div','guest-import');box.append(el('h3','','Deine bisherige lokale Sammlung'),el('p','muted',allCaught(guest).length+' Arten auf diesem Gerät. Du kannst diese Fänge und den zugehörigen Reisefortschritt zu deinem Konto hinzufügen.'),button('Lokale Sammlung übernehmen','secondary',()=>{importLibrary(lib(),guest);lib().migrations.push('guest-import');ctx.persistOnly();ctx.render();notify('Lokale Sammlung zum Konto hinzugefügt.');},'upload'));panel.append(box);
    }
    panel.append(button('Sicherung herunterladen','secondary',ctx.exportBackup,'download'),button('Abmelden','text-button',async()=>{try{await ctx.signOut();}catch(e){notify(authError(e));}},'user'));
-   if(info.recovery)passwordForm(panel);return;
+   return;
   }
-  panel.append(el('h2','',mode==='register'?'Trainerkonto anlegen':mode==='recover'?'Passwort zurücksetzen':'Willkommen zurück.'),el('p','muted','Mit deinem Konto kannst du auf Handy und PC an derselben Sammlung weitermachen. Dein lokaler Fortschritt wird erst auf Wunsch übernommen.'));
-  const form=el('form','account-form');const email=inputField('E-Mail','email','email','email');form.append(email.label);let pass;
-  if(mode!=='recover'){pass=inputField('Passwort','password','password',mode==='register'?'new-password':'current-password');pass.input.minLength=mode==='register'?10:1;if(mode==='register')pass.label.append(el('small','muted','Mindestens 10 Zeichen.'));form.append(pass.label);}
-  const message=el('p','form-message');message.setAttribute('role','status');const submit=button(mode==='register'?'Konto erstellen':mode==='recover'?'Link anfordern':'Anmelden','primary full');submit.type='submit';form.append(submit,message);panel.append(form);
-  form.addEventListener('submit',async e=>{e.preventDefault();submit.disabled=true;message.textContent='Einen Moment …';try{
+  panel.append(el('span','source-tag','DEIN TRAINERKONTO'),el('h2','',mode==='register'?'Deine nächste Reise beginnt.':'Willkommen zurück.'),el('p','muted',mode==='register'?'Ein Nutzername, vier Zeichen. Nimm deine Sammlung auf Handy und PC mit.':'Melde dich mit deinem Nutzernamen und deiner PIN an.'));
+  const form=el('form','account-form');
+  const name=inputField('Nutzername','username','text','username');name.input.minLength=3;name.input.maxLength=24;name.input.pattern='[A-Za-z0-9](?:[A-Za-z0-9_]|-){2,23}';name.input.autocapitalize='none';name.input.spellcheck=false;name.input.setAttribute('autocorrect','off');
+  if(mode==='register')name.label.append(el('small','muted','3–24 Zeichen: Buchstaben, Zahlen, _ oder -.'));
+  const pin=inputField('PIN','pin','password',mode==='register'?'new-password':'current-password');pin.input.minLength=4;pin.input.maxLength=4;pin.input.pattern='[A-Za-z0-9]{4}';pin.input.inputMode='text';pin.input.autocapitalize='none';pin.input.spellcheck=false;pin.input.setAttribute('autocorrect','off');pin.input.className='pin-input';
+  const pinRow=el('div','pin-entry'),show=button('Anzeigen','pin-visibility',()=>{const visible=pin.input.type==='password';pin.input.type=visible?'text':'password';show.textContent=visible?'Verbergen':'Anzeigen';show.setAttribute('aria-label',visible?'PIN verbergen':'PIN anzeigen');show.setAttribute('aria-pressed',String(visible));});show.setAttribute('aria-label','PIN anzeigen');show.setAttribute('aria-pressed','false');
+  pinRow.append(pin.input,show);pin.label.append(pinRow,el('small','muted','Genau 4 Buchstaben oder Zahlen. Groß- und Kleinschreibung zählt.'));
+  const message=el('p','form-message');message.setAttribute('role','status');const submit=button(mode==='register'?'Trainerkonto erstellen':'Anmelden','primary full');submit.type='submit';form.append(name.label,pin.label,submit,message);panel.append(form);
+  let submitting=false;
+  form.addEventListener('submit',async e=>{e.preventDefault();if(submitting)return;submitting=true;submit.disabled=true;message.textContent='Einen Moment …';try{
    const cloud=ctx.cloud();if(!cloud)throw Error('Cloud unavailable');
-   if(mode==='register'){const data=await cloud.signUp(email.input.value.trim(),pass.input.value);message.textContent=data.session?'Du bist angemeldet.':'Bitte bestätige deine E-Mail-Adresse über den Link in deinem Postfach.';pass.input.value='';}
-   else if(mode==='recover'){await cloud.reset(email.input.value.trim());message.textContent='Falls ein Konto zu dieser Adresse existiert, erhältst du eine E-Mail mit weiteren Schritten.';}
-   else await cloud.signIn(email.input.value.trim(),pass.input.value);
-  }catch(error){message.textContent=authError(error);}finally{submit.disabled=false;}});
-  for(const [key,label]of [['login','Ich habe schon ein Konto'],['register','Neues Konto erstellen'],['recover','Passwort vergessen?']])if(key!==mode)panel.append(button(label,'text-button',()=>{mode=key;account();}));
+   const data=mode==='register'?await cloud.signUp(name.input.value,pin.input.value):await cloud.signIn(name.input.value,pin.input.value);
+   if(data.session){pin.input.value='';message.textContent='Du bist angemeldet.';}
+  }catch(error){message.textContent=authError(error);}finally{submitting=false;submit.disabled=false;}});
+  panel.append(button(mode==='register'?'Ich habe schon ein Konto':'Neues Trainerkonto erstellen','text-button',()=>{mode=mode==='register'?'login':'register';account();}));
+  if(mode==='register')panel.append(el('p','account-note','Merke dir Nutzername und PIN. Ohne E-Mail-Adresse können wir eine vergessene PIN nicht zurücksetzen.'));
  }
- function inputField(text,name,type,autocomplete){const label=el('label','account-field',text),input=el('input');input.type=type;input.name=name;input.autocomplete=autocomplete;input.required=true;input.maxLength=type==='email'?254:128;label.append(input);return {label,input};}
- function passwordForm(panel){const form=el('form','account-form'),p=inputField('Neues Passwort','new-password','password','new-password');p.input.minLength=10;const b=button('Neues Passwort speichern','primary');b.type='submit';const msg=el('p','form-message');msg.setAttribute('role','status');form.append(p.label,b,msg);form.addEventListener('submit',async e=>{e.preventDefault();b.disabled=true;try{await ctx.cloud().updatePassword(p.input.value);ctx.recovered();p.input.value='';msg.textContent='Passwort gespeichert.';}catch(error){msg.textContent=authError(error);}finally{b.disabled=false;}});panel.append(form);}
+ function inputField(text,name,type,autocomplete){const label=el('label','account-field',text),input=el('input');input.type=type;input.name=name;input.autocomplete=autocomplete;input.required=true;label.append(input);return {label,input};}
  return {home,unavailable,dex,account,bag,sprite};
 }

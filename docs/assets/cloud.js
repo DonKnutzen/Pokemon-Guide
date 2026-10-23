@@ -1,4 +1,4 @@
-import {cloudConfig} from '../data/cloud-config.js';
+import {cloudConfig} from '../data/cloud-config.js?v=8';
 let sdkPromise;
 export function configured(config=cloudConfig){
  try{
@@ -16,7 +16,7 @@ function sdk(){
 }
 export async function connectCloud(onSession){
  if(!configured())return null;
- const {createClient}=await sdk(),client=createClient(cloudConfig.url,cloudConfig.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'pokeguide:auth:v1'}});
+ const {createClient}=await sdk(),client=createClient(cloudConfig.url,cloudConfig.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'pokeguide:auth:v1'}});
  client.auth.onAuthStateChange((event,session)=>{setTimeout(()=>onSession(session,event),0);});
  return {
   client,
@@ -28,20 +28,26 @@ export async function connectCloud(onSession){
    const bearer='Bearer '+session.access_token;
    return {async push(rows){const {error}=await client.rpc('apply_pokeguide_records',{entries:rows}).setHeader('Authorization',bearer);if(error)throw error;},async pull(offset,limit){const {data,error}=await client.from('pokeguide_records').select('key,value,stamp').order('key').range(offset,offset+limit-1).setHeader('Authorization',bearer);if(error)throw error;return data;}};
   },
-  async signIn(email,password){const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;},
-  async signUp(email,password){const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:new URL('./',document.baseURI).href+'#account'}});if(error)throw error;return data;},
-  async reset(email){const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:new URL('./',document.baseURI).href+'#account'});if(error)throw error;},
-  async updatePassword(password){const {error}=await client.auth.updateUser({password});if(error)throw error;},
+  async signIn(username,pin){return authenticate('login',username,pin);},
+  async signUp(username,pin){return authenticate('register',username,pin);},
   async signOut(){const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;}
  };
+ async function authenticate(action,username,pin){
+  const name=typeof username==='string'?username.trim():'';
+  if(!/^[A-Za-z0-9][A-Za-z0-9_-]{2,23}$/.test(name)||typeof pin!=='string'||!/^[A-Za-z0-9]{4}$/.test(pin))throw Object.assign(Error('Invalid trainer credentials'),{code:'invalid_input'});
+  const response=await fetch(cloudConfig.url+'/functions/v1/trainer-auth',{method:'POST',headers:{'Content-Type':'application/json',apikey:cloudConfig.publishableKey},body:JSON.stringify({action,username:name,pin}),signal:AbortSignal.timeout(20000)});
+  const result=await response.json().catch(()=>({code:'service_unavailable'}));
+  if(!response.ok||!result.session?.access_token||!result.session?.refresh_token)throw Object.assign(Error('Trainer authentication failed'),{code:result.code||'service_unavailable'});
+  const {data,error}=await client.auth.setSession(result.session);if(error)throw error;return data;
+ }
 }
 export function authError(error){
  const code=error?.code;
- if(code==='invalid_credentials')return 'E-Mail oder Passwort stimmen nicht.';
- if(code==='email_not_confirmed')return 'Bitte bestätige zuerst deine E-Mail-Adresse.';
- if(code==='over_email_send_rate_limit'||code==='over_request_rate_limit')return 'Zu viele Versuche. Bitte versuche es später erneut.';
- if(code==='weak_password')return 'Bitte wähle ein längeres Passwort mit verschiedenen Zeichen.';
- if(code==='user_already_exists')return 'Dieses Konto ist bereits registriert. Bitte melde dich an.';
- if(error instanceof TypeError||error?.message?.includes('fetch'))return 'Keine Verbindung. Dein Fortschritt bleibt auf diesem Gerät gespeichert.';
+ if(code==='invalid_credentials')return 'Nutzername oder PIN stimmen nicht.';
+ if(code==='username_taken')return 'Dieser Nutzername ist schon vergeben. Wähle einen anderen oder melde dich an.';
+ if(code==='rate_limited')return 'Zu viele Versuche. Bitte warte 15 Minuten und versuche es dann erneut.';
+ if(code==='invalid_input')return 'Bitte nutze einen gültigen Nutzernamen und genau vier Buchstaben oder Zahlen als PIN.';
+ if(code==='service_unavailable')return 'Die Anmeldung ist gerade nicht erreichbar. Bitte versuche es gleich erneut.';
+ if(error instanceof TypeError||error?.name==='TimeoutError'||error?.message?.includes('fetch'))return 'Keine Verbindung. Dein Fortschritt bleibt auf diesem Gerät gespeichert.';
  return 'Das hat nicht geklappt. Bitte versuche es erneut.';
 }
