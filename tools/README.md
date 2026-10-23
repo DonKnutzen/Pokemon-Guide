@@ -55,3 +55,9 @@ python3 tools/extract_guide_maps.py /pfad/zum/bereitgestellten-guide.pdf
 ```
 
 Die ausgeschnittenen PDF-Übersichten sind Referenzen. Marker erscheinen auf den exakten Original-Kartengrids, damit sie auch bei versteckten, im Buch nicht eingezeichneten Fundstellen richtig sitzen.
+
+## Gemeinsame Sammlung und Konten
+
+`build_platform_species.py` ergänzt den Namensindex bis #386 und die originalen Smaragd-Sprites für #252–386. Beide Quellen sind im Skript mit Commit-SHAs fixiert; der neue PNG-Atlas enthält die 64×64-Originalbilder ohne Skalierung. Die alten Gold-Atlanten bleiben erhalten.
+
+`verify_cloud_schema.mjs` prüft die Supabase-Migration in einer isolierten PostgreSQL-Instanz. Aufruf und Aktivierung des Backends stehen in [supabase/README.md](../supabase/README.md).

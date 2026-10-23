@@ -1,12 +1,12 @@
 # PokéGuide · Dein Fangbegleiter
 
-Ein mobiler Begleiter für die originalen Game-Boy-Color-Spiele Pokémon Gold und Silber.
+Deine gemeinsame Pokémon-Sammlung von Rot/Blau bis Smaragd, mit eigenen Reisen pro Edition. Gold und Silber haben bereits den vollständigen bestehenden Routen- und Itemdatensatz. Die weiteren Editionen haben einen nutzbaren Reihen-Pokédex; ihre Routen- und Itemguides folgen separat.
 
 **Website:** https://donknutzen.github.io/Pokemon-Guide/
 
 ## So benutzt du ihn
 
-1. **Edition wählen.** Gold und Silber haben getrennte Sammlungen und Fangorte.
+1. **Edition wählen.** Auf der Startseite stehen elf Editionen in vier Reihen. Gefangene Arten werden innerhalb einer Reihe gemeinsam gespeichert; Fangorte, Route, Items, Starter und Ausrüstung hängen von der Edition ab.
 2. **Aktuelles Gebiet wählen.** Die Reiseroute führt durch 94 Orte. Mit dem Pfeil geht es zum nächsten Gebiet; die Gebietsauswahl springt direkt zu einem Ort.
 3. **Fehlende Arten ansehen.** Kleine Original-Pixelbilder, Fangmethoden, Tageszeiten und Level stehen direkt auf der Karte. Antippen öffnet alle Details.
 4. **„Gefangen“ antippen.** Die Art wandert in deinen Pokédex und verschwindet aus den offenen Fanglisten sämtlicher weiterer Gebiete. Entwicklungen bleiben eigenständig offen. „Rückgängig“ korrigiert einen versehentlichen Fang.
@@ -18,11 +18,32 @@ Der Pokédex zeigt alle 251 Arten mit editionsabhängigen Fangquellen, Entwicklu
 
 Mit dem Mond-/Sonnenknopf oben wechselst du zwischen Hell und Dunkel. Die Auswahl bleibt auf deinem Gerät gespeichert; ohne eigene Auswahl folgt die App dem Systemdesign.
 
-## Speicherung und vorhandener Fortschritt
+## Spielreihen und Pokédexe
 
-Fortschritt bleibt lokal im Browser. Unter **Rucksack** lassen sich JSON-Sicherungen herunterladen und wieder ergänzend laden. Ohne Sicherung gibt es keine geräteübergreifende Synchronisation. Das Löschen der Browserdaten kann den Fortschritt entfernen.
+| Gemeinsame Sammlung | Editionen | Artenziel |
+| --- | --- | --- |
+| Kanto, Generation I | Rot, Blau, Gelb | 151 |
+| Johto, Generation II | Gold, Silber, Kristall | 251 |
+| Hoenn, Generation III | Rubin, Saphir, Smaragd | 386 (national) |
+| Kanto-Remakes, Generation III | Feuerrot, Blattgrün | 386 (national) |
 
-Vorhandene Story- und Sammelsicherungen bleiben kompatibel. Frühere Story-Häkchen werden für passende Freischaltungen weiter berücksichtigt. Neu erfasste Fänge merken sich zusätzlich das Gebiet. Die Oberfläche startet direkt beim zuletzt gewählten Gebiet; der frühere lange Story- und Aufgabenaufbau ist durch die Fangreise ersetzt.
+Ein in Blau erfasstes Taubsi zählt in Rot und Gelb mit. In Gold/Silber/Kristall bleibt es unabhängig offen. Jede Entwicklung wird einzeln gesammelt. Die Gesamtübersicht zählt jede Art einmal über alle Reihen hinweg. Nationale Ziele umfassen auch Pokémon, die nur durch externe Quellen oder Tausch erhältlich sind; die Übersicht ist kein Tauschverbindungsplan zwischen Generationen.
+
+Die zusätzlichen Pokédexe sind manuell nutzbar, mit deutschen Namen und lokalen Bildern für alle 386 Arten. **Nur Gold und Silber haben aktuell geprüfte Routen, Fangquellen, Items und Fundkarten.** Unfertige Guides werden ausdrücklich als in Vorbereitung angezeigt. Die Daten von Gold/Silber gelten nicht automatisch für Kristall.
+
+## Speicherung, Migration und Konten
+
+Der neue Browser-Speicher heißt `pokeguide:library:v2:guest`. Beim ersten Laden wird der alte Speicher `pokeguide:progress:gold-silver:v1` einmal übernommen. Fänge aus Gold und Silber werden vereinigt; Items, besuchte Orte, Route, Ausrüstung und ältere Story-Häkchen bleiben pro Edition erhalten. Der alte Speicher bleibt als Rückfallkopie bestehen. Spätere Rücknahmen werden nicht erneut durch die alte Migration überschrieben.
+
+JSON-Sicherungen enthalten jetzt alle vier Reihen und alle Durchläufe. Alte Gold/Silber-Sicherungen können weiterhin ergänzend importiert werden. Importieren fügt positive Fortschritte hinzu und löscht keine vorhandene Sammlung. Theme und Anmeldetokens gehören nicht zur Sicherung.
+
+**Kontostatus:** Anmeldung und Synchronisation sind implementiert, aber auf der veröffentlichten Seite erst nach Verbindung eines eigenen Supabase-Projekts aktiv. Ohne Konfiguration zeigt die Kontoseite den tatsächlichen lokalen Status. Einrichtung: [supabase/README.md](supabase/README.md).
+
+Mit konfiguriertem Backend gibt es Registrierung, E-Mail-Bestätigung, Anmeldung, Passwort-Zurücksetzen und Abmeldung. Nach der Anmeldung wird ein getrennter Cache für die jeweilige Nutzer-ID verwendet. Die lokale Gastsammlung wird nur über „Lokale Sammlung übernehmen“ zum Konto hinzugefügt. Konten werden nicht automatisch vermischt. Passwortprüfung und Sitzungserneuerung übernimmt Supabase Auth; Passwörter werden nicht in den Fortschritt geschrieben.
+
+Cloud-Daten werden pro Nutzer und unabhängigem Fortschrittsfeld gespeichert. Jeder Fang, Fund, Ausrüstungswechsel und die aktuelle Route haben eigene Änderungsstände. Rücknahmen bleiben als `false` gespeichert. Gleichzeitige Änderungen auf verschiedenen Geräten werden zusammengeführt; bei Änderungen desselben Felds gewinnt der neuere logische Zeitstempel. Offline-Änderungen bleiben bis zum nächsten erfolgreichen Abgleich ausstehend. Die Synchronisierung läuft nach Änderungen, beim erneuten Öffnen der App und bei wiederhergestellter Verbindung. Für ein geöffnetes zweites Gerät gibt es außerdem „Jetzt synchronisieren“ im Konto. Es gibt kein permanentes Realtime-Abonnement.
+
+Ohne aktives Konto bleibt die Sammlung auf diesem Gerät. Sicherungen schützen vor dem Löschen der Browserdaten.
 
 ## Umfang und Quellen
 
@@ -39,7 +60,7 @@ Zugangsvoraussetzungen wurden für die empfohlene Reise kuratiert; Sonderfälle 
 
 ## Hosting und Entwicklung
 
-GitHub Pages verwendet **main → /docs**. Änderungen auf `main` werden automatisch veröffentlicht; es gibt keinen Build-Schritt und keine Laufzeit-Paketabhängigkeiten.
+GitHub Pages verwendet **main → /docs**. Änderungen auf `main` werden automatisch veröffentlicht; es gibt keinen Build-Schritt und keinen Server auf GitHub. Supabase Auth/PostgREST wird nur bei konfiguriertem Konto angesprochen. Das offizielle Supabase-SDK 2.118.0 liegt lokal unter `docs/vendor/` und wird erst für die Anmeldung geladen.
 
 ```sh
 python3 -m http.server 8080 --directory docs
@@ -53,6 +74,10 @@ npm test
 
 Tests benötigen Node.js ab Version 20, ohne Paketinstallation.
 
+- `docs/assets/platform-model.js`, `sync-engine.js`: geteilte Reihen-Sammlungen, Editionsfortschritt, alte Speicherstände und Zusammenführung.
+- `docs/assets/platform-ui.js`, `docs/data/catalog.js`: elf Editionen, vier Sammlungen und Gesamt-Pokédex.
+- `docs/assets/cloud.js`, `docs/data/cloud-config.js`, `supabase/`: Konten, geschützte Speicherung und Einrichtung.
+- `docs/data/species-index.js`, `pokemon-sprites-hoenn.png`: deutsche Namen bis #386 und ergänzende Smaragd-Pixelbilder.
 - `docs/assets/app.js`, `journey.css`: mobile Oberfläche, Gebietsauswahl, Detailfenster und Sicherungen.
 - `docs/assets/journey-model.js`: offene und spätere Fänge, editionsabhängige Bezugsarten, Fundgruppen und Fangstatus.
 - `docs/assets/collection-model.js`, `model.js`: Freischaltungen und kompatibles Speichermodell.

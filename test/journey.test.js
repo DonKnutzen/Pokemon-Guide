@@ -22,7 +22,7 @@ test('a rod catch is visible under later and moves to now when that rod is confi
  const after=routeCatches(data,s,'cherrygrove_city');assert.ok(after.now.some(p=>p.id===129));
  assert.ok(!after.later.some(p=>p.id===129));
 });
-test('catching in Gold neither marks nor hides that species in Silver',()=>{
+test('legacy edition representation stays isolated before platform migration',()=>{
  const s=allOpen();setCaught(s,16,true,'route_29');s.edition='silver';s.collection.silver.unlocks=['balls'];
  assert.ok(routeCatches(data,s,'route_29').now.some(p=>p.id===16));assert.deepEqual(s.collection.silver.caught,[]);
 });
