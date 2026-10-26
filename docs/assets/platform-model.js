@@ -1,4 +1,4 @@
-import {series,gameById,seriesById} from '../data/catalog.js';
+import {series,gameById,seriesById} from '../data/catalog.js?v=9';
 import {blankProgress,restoreProgress} from './model.js?v=3';
 
 export const LIBRARY_VERSION=2;
@@ -26,6 +26,9 @@ export function validRecord(key,record){
  if(type==='setting'&&parts.length===3){
   if(id==='lastLocation'||id==='lastChapter')return token(v);
   if(id==='starter')return v===0||seriesById(game.series).starters.includes(v);
+  if(id==='frlgStage')return ['firered','leafgreen'].includes(scope)&&Number.isInteger(v)&&v>=0&&v<=17;
+  if(id==='dojo')return [0,106,107].includes(v);
+  if(id==='fossil')return [0,138,140].includes(v);
   if(id==='time')return ['all','morn','day','nite'].includes(v);
   if(id==='weekday')return v==='all'||Number.isInteger(v)&&v>=0&&v<=6;
  }

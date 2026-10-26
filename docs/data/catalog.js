@@ -15,8 +15,8 @@ export const games = [
  {id:'ruby',name:'Rubin',series:'rse',color:'#b75061'},
  {id:'sapphire',name:'Saphir',series:'rse',color:'#5d76b4'},
  {id:'emerald',name:'Smaragd',series:'rse',color:'#488c68'},
- {id:'firered',name:'Feuerrot',series:'frlg',color:'#bd7743'},
- {id:'leafgreen',name:'Blattgrün',series:'frlg',color:'#73974c'}
+ {id:'firered',name:'Feuerrot',series:'frlg',color:'#bd7743',guide:'firered-leafgreen'},
+ {id:'leafgreen',name:'Blattgrün',series:'frlg',color:'#73974c',guide:'firered-leafgreen'}
 ];
 export const gameById = id => games.find(game=>game.id===id);
 export const seriesById = id => series.find(row=>row.id===id);

@@ -1,6 +1,6 @@
 # PokéGuide · Dein Fangbegleiter
 
-Deine gemeinsame Pokémon-Sammlung von Rot/Blau bis Smaragd, mit eigenen Reisen pro Edition. Gold und Silber haben bereits den vollständigen bestehenden Routen- und Itemdatensatz. Die weiteren Editionen haben einen nutzbaren Reihen-Pokédex; ihre Routen- und Itemguides folgen separat.
+Deine gemeinsame Pokémon-Sammlung von Rot/Blau bis Smaragd, mit eigenen Reisen pro Edition. Gold und Silber haben bereits den vollständigen bestehenden Routen- und Itemdatensatz. Feuerrot und Blattgrün haben ebenfalls einen eigenen Fangplan, Routenablauf und Fundkarten. Die weiteren Editionen haben einen nutzbaren Reihen-Pokédex; ihre Routen- und Itemguides folgen separat.
 
 **Website:** https://donknutzen.github.io/Pokemon-Guide/
 
@@ -29,7 +29,17 @@ Mit dem Mond-/Sonnenknopf oben wechselst du zwischen Hell und Dunkel. Alle elf E
 
 Ein in Blau erfasstes Taubsi zählt in Rot und Gelb mit. In Gold/Silber/Kristall bleibt es unabhängig offen. Jede Entwicklung wird einzeln gesammelt. Die Gesamtübersicht zählt jede Art einmal über alle Reihen hinweg. Nationale Ziele umfassen auch Pokémon, die nur durch externe Quellen oder Tausch erhältlich sind; die Übersicht ist kein Tauschverbindungsplan zwischen Generationen.
 
-Die zusätzlichen Pokédexe sind manuell nutzbar, mit deutschen Namen und lokalen Bildern für alle 386 Arten. **Nur Gold und Silber haben aktuell geprüfte Routen, Fangquellen, Items und Fundkarten.** Unfertige Guides werden ausdrücklich als in Vorbereitung angezeigt. Die Daten von Gold/Silber gelten nicht automatisch für Kristall.
+Die zusätzlichen Pokédexe sind manuell nutzbar, mit deutschen Namen und lokalen Bildern für alle 386 Arten. **Gold/Silber sowie Feuerrot/Blattgrün haben eigene Routen, Fangquellen, Items und Fundkarten.** Unfertige Guides werden ausdrücklich als in Vorbereitung angezeigt. Die Daten von Gold/Silber gelten nicht automatisch für Kristall.
+
+## Feuerrot und Blattgrün
+
+90 Gebiete und Stationen führen durch Kanto und die Eilande. Die editionseigenen Wildtabellen enthalten 1.007 bzw. 1.009 nach Pokémon und Fangmethode zusammengefasste Begegnungen, ergänzt um Geschenke, Fossilien, NPC-Tausch, Spielhallenpreise, stationäre und wandernde Pokémon. Die App erfindet keinen Tageszeitenwechsel für FR/LG.
+
+Unter **Alten Spielstand übernehmen** lassen sich alle 151 oder 386 Arten vorauswählen und nur fehlende abwählen. Erst die abschließende Übernahme speichert die Auswahl. Die Fortschrittsschätzung berücksichtigt auch frühere Entwicklungswege; sie ist ein Hinweis und schaltet keine Ausrüstung frei. Der bestätigte Abschnitt, Angeln, VMs sowie Starter-, Fossil- und Dojo-Wahl steuern den persönlichen Fangplan. Fänge gelten gemeinsam für FR/LG, Items und Ausrüstung bleiben getrennt.
+
+Pro Edition sind 168 sichtbare und 171 tatsächlich belegte versteckte Fundfelder enthalten. Leere versteckte Ereignisse (`ITEM_NONE`) zählen nicht als Items. Zusätzlich stehen NPC-, Spielhallen-, Trainerturm- und Verbindungsbelohnungen in den Daten. Zufällige und historische Quellen sind entsprechend gekennzeichnet. Originales Gelände wird aus der Quellrekonstruktion gerendert; Marker sitzen auf den Ereigniskoordinaten. Die Karten enthalten keine beweglichen Figuren. Einzelne Zugänge zu Funden brauchen zusätzliche VMs oder Story-Schritte, die im Spiel geprüft werden müssen.
+
+Referenzen: [Nintendo Power, offizieller Spieleberater 2004](https://archive.org/details/pokemon_frlg_nintendo_power_guide) für den Ablauf sowie [pret/pokefirered](https://github.com/pret/pokefirered/tree/ce6406d8c2eaf46d543c8a2606de0c3cb1951982) für Fangtabellen, Entwicklung und Fundfelder. Eigene kurze Zusammenfassungen; das Buch und seine Seitenscans werden nicht mitgeliefert.
 
 ## Speicherung, Migration und Konten
 

@@ -1,6 +1,6 @@
-import {games,series,gameById,seriesById} from '../data/catalog.js';
+import {games,series,gameById,seriesById} from '../data/catalog.js?v=9';
 import {speciesIndex} from '../data/species-index.js';
-import {caughtIn,allCaught,catchRecord,markCaught,hasProgress,importLibrary} from './platform-model.js';
+import {caughtIn,allCaught,catchRecord,markCaught,hasProgress,importLibrary} from './platform-model.js?v=9';
 import {spritePresentation} from './sprite-model.js';
 import {authError} from './cloud.js?v=8';
 
@@ -27,7 +27,7 @@ export function platformUI(ctx){
    const starters=el('div','series-starters');for(const id of s.starters)starters.append(sprite(id,s.id));card.append(starters,progress(caughtIn(lib(),s.id).length,s.max,'im gemeinsamen Pokédex'));
    const choices=el('div','game-choices');for(const game of games.filter(g=>g.series===s.id)){
     const b=button(game.name,'game-choice'+(lib().selectedEdition===game.id?' selected':'')+(game.guide?' guide-ready':''),()=>ctx.select(game.id),game.guide?'compass':undefined);b.style.setProperty('--game-color',game.color);b.setAttribute('aria-label',game.name+(game.guide?' · Guide öffnen':' · Sammlung öffnen'));if(lib().selectedEdition===game.id)b.setAttribute('aria-pressed','true');choices.append(b);
-   }card.append(choices,el('p','guide-state',s.id==='gsc'?'Gold & Silber: Routen, Pokémon und Fundkarten':'Pokédex bereit · Routen- und Itemguide folgt'));
+   }card.append(choices,el('p','guide-state',s.id==='frlg'?'Feuerrot & Blattgrün: Fangplan, Items und Fundkarten':s.id==='gsc'?'Gold & Silber: Routen, Pokémon und Fundkarten':'Pokédex bereit · Routen- und Itemguide folgt'));
    const open=button('Gemeinsamen Pokédex öffnen','series-dex-link',()=>{const current=games.find(g=>g.id===lib().selectedEdition&&g.series===s.id)||games.find(g=>g.series===s.id);ctx.select(current.id,'dex');},'ball');card.append(open);grid.append(card);
   }main.append(grid,el('p','platform-footnote','Fänge gelten innerhalb einer Spielreihe gemeinsam. Route, Items und Ausrüstung gehören immer zur gewählten Edition. Jede Entwicklung zählt einzeln.'));
  }

@@ -1,4 +1,4 @@
-import {pendingRows,mergeRecords,acknowledge} from './platform-model.js';
+import {pendingRows,mergeRecords,acknowledge} from './platform-model.js?v=9';
 
 // Snapshot writes are acknowledged by stamp, so a catch made during a request
 // remains pending. Remote rows merge per field, including undo tombstones.
