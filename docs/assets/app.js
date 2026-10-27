@@ -1,3 +1,4 @@
+import {startLanguage} from './language.js?v=10';
 import {guide} from '../data/gold-silver.js';
 import {collectionData as data} from '../data/collection-data.js';
 import {normalize} from './model.js?v=3';
@@ -10,8 +11,8 @@ import {positionFor,mappedItems,itemMarker,focusBox} from './item-map-model.js';
 import {games,series,gameById,seriesById} from '../data/catalog.js?v=9';
 import {emptyLibrary,restoreLibrary,GUEST_KEY,accountKey,guideView,applyGuideView,migrateLegacy,caughtIn,allCaught,catchRecord,importLibrary,pendingRows,markCaught,writeRecord,mergeDeviceLibrary} from './platform-model.js?v=9';
 import {spritePresentation} from './sprite-model.js';
-import {platformUI} from './platform-ui.js?v=9';
-import {frlgUI} from './frlg-ui.js?v=9';
+import {platformUI} from './platform-ui.js?v=10';
+import {frlgUI} from './frlg-ui.js?v=10';
 import {areaBy as frlgArea,lastArea as frlgLast} from './frlg-model.js?v=9';
 import {configured,connectCloud,authError} from './cloud.js?v=8';
 import {syncLibrary} from './sync-engine.js';
@@ -249,3 +250,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('storage',event=>{if(event.key!==storageKey()||!event.newValue)return;try{const other=restoreLibrary(JSON.parse(event.newValue),device);if(mergeDeviceLibrary(library,other)){storeLibrary();state=guideView(library,guide);render();}if(pendingRows(library).length)scheduleSync();}catch{}});
 route=readRoute();persistOnly(false);render();
 if(configured())connectCloud(sessionChanged).then(value=>{cloud=value;if(cloudUser)doSync();}).catch(()=>{cloudLoading=false;syncStatus='error';refreshCloudChrome();notify('Anmeldung konnte nicht geladen werden. Deine Sammlung bleibt lokal erhalten.');});
+
+startLanguage();
+window.addEventListener('pokeguide-language',()=>render());

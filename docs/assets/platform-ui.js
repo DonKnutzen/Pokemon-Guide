@@ -1,3 +1,4 @@
+import {languageControl,getLanguage} from './language.js?v=10';
 import {games,series,gameById,seriesById} from '../data/catalog.js?v=9';
 import {speciesIndex} from '../data/species-index.js';
 import {caughtIn,allCaught,catchRecord,markCaught,hasProgress,importLibrary} from './platform-model.js?v=9';
@@ -65,6 +66,7 @@ export function platformUI(ctx){
  }
  function account(){
   main.replaceChildren();
+  main.append(languageControl(el,button));
   const info=ctx.cloudState();title('DEIN KONTO','Überall weiterreisen.','Deine Sammlung und alle Durchläufe an einem Platz.');
   const panel=el('section','account-panel');main.append(panel);
   if(!info.configured){panel.append(icon('cloud'),el('h2','','Anmeldung wird vorbereitet.'),el('p','muted','Die Konten sind noch nicht freigeschaltet. Bis dahin werden deine Fänge, Items und Reisen auf diesem Gerät gespeichert.'),link('#games','Lokal weitersammeln','primary','arrow'),button('Sammlung sichern','secondary',ctx.exportBackup,'download'));return;}
@@ -72,7 +74,7 @@ export function platformUI(ctx){
   if(!ctx.cloud()){panel.append(el('h2','','Verbindung gerade nicht verfügbar.'),el('p','muted','Deine Sammlung bleibt auf diesem Gerät gespeichert.'),button('Erneut verbinden','primary',()=>location.reload(),'cloud'));return;}
   if(info.user){
    panel.append(el('span','source-tag','DEIN TRAINERKONTO'),el('h2','account-email',info.user.user_metadata?.trainer_name||info.user.user_metadata?.username||'Dein Trainerkonto'),el('p','sync-status',status()));
-   if(info.syncedAt)panel.append(el('p','muted','Zuletzt synchronisiert: '+new Date(info.syncedAt).toLocaleString('de-DE')));
+   if(info.syncedAt)panel.append(el('p','muted','Zuletzt synchronisiert: '+new Date(info.syncedAt).toLocaleString(getLanguage()==='en'?'en-GB':'de-DE')));
    panel.append(button(info.status==='syncing'?'Wird synchronisiert …':'Jetzt synchronisieren','primary',()=>ctx.sync(),'cloud'));
    const guest=ctx.guest();if(hasProgress(guest)&&!lib().migrations.includes('guest-import')){
     const box=el('div','guest-import');box.append(el('h3','','Deine bisherige lokale Sammlung'),el('p','muted',allCaught(guest).length+' Arten auf diesem Gerät. Du kannst diese Fänge und den zugehörigen Reisefortschritt zu deinem Konto hinzufügen.'),button('Lokale Sammlung übernehmen','secondary',()=>{importLibrary(lib(),guest);lib().migrations.push('guest-import');ctx.persistOnly();ctx.render();notify('Lokale Sammlung zum Konto hinzugefügt.');},'upload'));panel.append(box);

@@ -102,3 +102,7 @@ Tests benötigen Node.js ab Version 20, ohne Paketinstallation.
 - `test/`: Prüfungen für Zugang, Editionen, globale Fangfilter, Entwicklungen und Sicherungen.
 
 Aufgaben-, Gebiets- und Fund-IDs bleiben stabil. Inoffizielles Fanprojekt. Pokémon, Namen und Originalgrafiken gehören den jeweiligen Rechteinhabern.
+
+## Sprache
+
+Im Profil unter **Sprache** zwischen Deutsch und Englisch wechseln. Die Auswahl wird auf diesem Browser gespeichert. Die englische Fassung umfasst zunächst Feuerrot/Blattgrün samt Fangplan, Routenhinweisen, Fundkarten und offiziellen englischen Pokémon-/Itemnamen sowie die gemeinsamen Profil- und Navigationsansichten. Andere Guides bleiben auf Deutsch. Der Wechsel verändert keine Fang-, Item- oder Fortschritts-IDs. Englische und deutsche Pokémonnamen funktionieren in der FR/LG-Suche. Übersetzungen liegen lokal in `docs/data/en-*.json`; es wird kein Übersetzungsdienst zur Laufzeit aufgerufen.
