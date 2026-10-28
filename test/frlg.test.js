@@ -60,3 +60,10 @@ test('progress hints account for early evolution instead of only late wild encou
 test('native event encounters keep their event label in the default missing plan',()=>{
  const l=fresh();for(const id of [249,250,386])assert.equal(options(id,l,'firered')[0].status,'event');
 });
+
+test('starting a new journey resets only the selected edition and retains shared catches',async()=>{
+ const {beginJourney}=await import('../docs/assets/frlg-model.js');const l=fresh();
+ markCaught(l,'leafgreen',25,true);writeRecord(l,'item.firered.pickup',true);writeRecord(l,'unlock.firered.surf',true);writeRecord(l,'item.leafgreen.pickup',true);setStage(l,'firered',17);setStage(l,'leafgreen',14);
+ beginJourney(l,'firered',4);assert.equal(stageOf(l,'firered'),0);assert.equal(stageOf(l,'leafgreen'),14);assert.equal(l.records['item.firered.pickup'].value,false);assert.equal(l.records['unlock.firered.surf'].value,false);assert.equal(l.records['item.leafgreen.pickup'].value,true);assert(caughtIn(l,'frlg').includes(25));assert(caughtIn(l,'frlg').includes(4));
+ const before=JSON.stringify(l);assert.throws(()=>beginJourney(l,'firered',150));assert.equal(JSON.stringify(l),before);
+});

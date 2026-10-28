@@ -57,3 +57,11 @@ export function suggestStage(ids,ed){
 }
 export function applyOwned(lib,ed,ids,max){const selected=new Set(ids);for(let id=1;id<=max;id++){const current=lib.records[`caught.frlg.${id}`]?.value?.caught===true;if(current!==selected.has(id))markCaught(lib,ed,id,selected.has(id));}}
 export function setStage(lib,ed,value){if(Number.isInteger(value)&&value>=0&&value<=17)writeRecord(lib,`setting.${ed}.frlgStage`,value);}
+
+// Start a fresh edition journey without clearing the shared series Pokédex.
+export function beginJourney(lib,ed,starter){
+ if(!['firered','leafgreen'].includes(ed)||![1,4,7].includes(starter))throw Error('Invalid journey setup');
+ for(const [key,r]of Object.entries(lib.records)){const [type,scope]=key.split('.');if(scope===ed&&['item','unlock','visited','task'].includes(type)&&r.value===true)writeRecord(lib,key,false);}
+ for(const k of ['fossil','dojo'])writeRecord(lib,`setting.${ed}.${k}`,0);
+ setStage(lib,ed,0);writeRecord(lib,`setting.${ed}.starter`,starter);writeRecord(lib,`setting.${ed}.lastLocation`,'pallet_town');markCaught(lib,ed,starter,true,'pallet_town');
+}

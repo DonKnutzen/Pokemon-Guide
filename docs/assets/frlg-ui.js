@@ -1,5 +1,5 @@
-import {englishName,translate} from './language.js?v=10';
-import {data,nameOf,stages,gear,methodNames,kindNames,get,has,flags,stageOf,areaBy,areaOf,lastArea,itemName,requirements,options,routeMons,routeItems,suggestStage,applyOwned,setStage} from './frlg-model.js?v=9';
+import {englishName,translate} from './language.js?v=11';
+import {data,nameOf,beginJourney,stages,gear,methodNames,kindNames,get,has,flags,stageOf,areaBy,areaOf,lastArea,itemName,requirements,options,routeMons,routeItems,suggestStage,applyOwned,setStage} from './frlg-model.js?v=11';
 import {caughtIn,markCaught,writeRecord,catchRecord} from './platform-model.js?v=9';
 import {speciesIndex} from '../data/species-index.js';
 export function frlgUI(ctx){
@@ -26,6 +26,22 @@ export function frlgUI(ctx){
   if(!draftMode)body.append(checked('M.S. Anne ist bereits abgelegt',has(lib(),ed(),'ssanneGone'),v=>{writeRecord(lib(),`unlock.${ed()}.ssanneGone`,v);saved();}));
  }
  function settings(){openSheet('Dein Spielstand · '+(ed()==='firered'?'Feuerrot':'Blattgrün'),body=>{configBody(body);body.append(button('Fertig','primary full',()=>document.querySelector('#sheet').close(),'check'));});}
+ function journeyStart(){reset();title('FEUERROT / BLATTGRÜN','Wie möchtest du starten?');
+  const choices=el('div','frlg-entry-choices');
+  for(const [hash,label,description,ico]of [['#resume','Alten Spielstand übernehmen','Vorhandene Pokémon auswählen und fehlende gezielt finden.','back'],['#newgame','Neues Spiel anfangen','Starter wählen und die Reise in Alabastia beginnen.','compass']]){
+   const b=button('','frlg-entry-choice',()=>go(hash),ico),text=el('span');text.append(el('strong','',label),el('small','',description));b.append(text);choices.append(b);
+  }main.append(choices);
+  if(Object.keys(lib().records).some(k=>k.startsWith('visited.'+ed()+'.')))main.append(link('#route/'+lastArea(lib(),ed()),'Aktuelle Reise fortsetzen','text-button','arrow'));
+ }
+ function newgame(){reset();title('NEUE REISE','Wähle deinen Starter.','Dein gemeinsamer Pokédex bleibt erhalten. Route, Ausrüstung und Item-Häkchen dieser Edition beginnen neu.');
+  let starter=get(lib(),ed(),'starter',0);const choices=el('div','starter-grid'),start=button('Reise beginnen','primary full',()=>{
+   beginJourney(lib(),ed(),starter);ctx.persistOnly();go('#route/pallet_town');
+  },'arrow');start.disabled=!starter;
+  for(const id of [1,4,7]){const b=button('','starter-choice'+(starter===id?' selected':''),()=>{starter=id;start.disabled=false;for(const c of choices.children){c.classList.toggle('selected',c===b);c.setAttribute('aria-pressed',String(c===b));}});b.append(sprite(id),el('strong','',nameOf(id)));b.setAttribute('aria-pressed',String(starter===id));choices.append(b);}main.append(choices);
+  const existing=Object.entries(lib().records).some(([k,r])=>k.startsWith(`item.${ed()}.`)&&r.value===true||k.startsWith(`unlock.${ed()}.`)&&r.value===true)||stageOf(lib(),ed())>0;
+  if(existing){main.append(el('p','notice','Beim Start werden Route, Ausrüstung und Item-Häkchen dieser Edition zurückgesetzt. Deine gefangenen Pokémon und die andere Edition bleiben erhalten.'),button('Vorher Sicherung speichern','text-button',ctx.exportBackup,'download'));start.querySelector('span').textContent='Editionsfortschritt zurücksetzen & starten';}
+  main.append(start,link('#journey-start','Zurück','text-button','left'));
+ }
  function routeView(){reset();const a=areaBy(ctx.route().id)||areaBy(lastArea(lib(),ed())),index=data.areas.indexOf(a),mons=routeMons(lib(),ed(),a.id),now=mons.filter(m=>!m.owned&&m.ready),later=mons.filter(m=>!m.owned&&!m.ready),got=mons.filter(m=>m.owned),items=routeItems(lib(),ed(),a.id);
   const hero=el('section','frlg-hero');hero.append(el('div','eyebrow','KANTO & EILAND · '+String(index+1).padStart(2,'0')+' / '+data.areas.length));const head=el('div','frlg-title-row');head.append(el('h1','',a.name),button('Gebiet','secondary',picker,'map'));hero.append(head,el('p','muted','Deine offenen Fänge und alle Fundstellen. Pokémon werden für Feuerrot und Blattgrün gemeinsam gemerkt.'));const nav=el('div','frlg-trail');if(index)nav.append(link('#route/'+data.areas[index-1].id,data.areas[index-1].name,'text-button','left'));if(index<data.areas.length-1)nav.append(link('#route/'+data.areas[index+1].id,data.areas[index+1].name,'text-button','arrow'));hero.append(nav);main.append(hero);
   const tools=el('div','route-tools');tools.append(button('Fortschritt & Ausrüstung','tool-pill',settings,'bag'),link('#plan','Was fehlt mir?','tool-pill','ball'),link('#resume','Alten Spielstand übernehmen','tool-pill','back'));main.append(tools);
@@ -82,5 +98,5 @@ export function frlgUI(ctx){
  function returns(){title('OFFENE MÖGLICHKEITEN','Zurück lohnt sich.','Bereits besuchte Gebiete mit noch fehlenden Pokémon, die zu deiner bestätigten Ausrüstung passen.');for(const a of data.areas){if(!lib().records[`visited.${ed()}.${a.id}`]?.value)continue;const n=routeMons(lib(),ed(),a.id).filter(m=>m.ready&&!m.owned).length;if(n)main.append(link('#route/'+a.id,a.name+' · '+n+' offene Arten','frlg-return','arrow'));}main.append(link('#plan','Alle fehlenden Pokémon planen','primary','ball'));}
  function sourceFooter(a){const d=el('details','frlg-sources frlg-details');d.append(el('summary','','Quellen & Karten'));const p=el('p','muted');p.append(document.createTextNode('Eigene Zusammenfassung nach dem '));const g=link(data.guide.url,data.guide.title+(a?.page?' · S. '+a.page:''),'text-button');g.target='_blank';g.rel='noopener';p.append(g,document.createTextNode('. Fangtabellen, Itemfelder und Gelände aus dem rekonstruierten Spielcode. Karten zeigen feste Ausgangszustände; Spezialzugänge und einmalige Entscheidungen bitte beachten.'));d.append(p,link('https://github.com/pret/pokefirered/tree/'+data.source.sha,'Spieldaten · pret/pokefirered','text-button'));main.append(d);}
  function sidebar(side){const scroll=side.querySelector('.sidebar-routes')?.scrollTop||0;side.replaceChildren();const h=el('div','sidebar-title');h.append(el('span','eyebrow','KANTO & EILAND'),el('h2','','Dein Weg. Deine Sammlung.'));side.append(h,link('#plan','Was fehlt mir noch?','platform-side-link','ball'));const list=el('nav','sidebar-routes');list.setAttribute('aria-label','Gebiete in Spielreihenfolge');for(const [i,a]of data.areas.entries()){const active=ctx.route().id===a.id,b=button('','side-route'+(active?' active':''),()=>go('#route/'+a.id));b.append(el('span','route-dot',lib().records[`visited.${ed()}.${a.id}`]?.value?'✓':String(i+1).padStart(2,'0')),el('span','',a.name));if(active)b.setAttribute('aria-current','location');list.append(b);}side.append(list);list.scrollTop=scroll;}
- return {route:routeView,dex,plan,resume,bag,returns,sidebar,settings,picker};
+ return {'journey-start':journeyStart,newgame,route:routeView,dex,plan,resume,bag,returns,sidebar,settings,picker};
 }

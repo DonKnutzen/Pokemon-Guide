@@ -839,5 +839,18 @@
   "Unbekannt": "Unknown",
   "Surfer": "Surf",
   "Celios Netzwerk repariert": "Celio’s Network Machine repaired",
-  " im gemeinsamen Pokédex.": " recorded in the shared Pokédex."
+  " im gemeinsamen Pokédex.": " recorded in the shared Pokédex.",
+  "Wie möchtest du starten?": "How would you like to start?",
+  "Vorhandene Pokémon auswählen und fehlende gezielt finden.": "Record the Pokémon you have and find the ones you’re missing.",
+  "Neues Spiel anfangen": "Start a new game",
+  "Starter wählen und die Reise in Alabastia beginnen.": "Choose your starter and begin in Pallet Town.",
+  "Aktuelle Reise fortsetzen": "Continue current journey",
+  "NEUE REISE": "NEW JOURNEY",
+  "Wähle deinen Starter.": "Choose your starter.",
+  "Dein gemeinsamer Pokédex bleibt erhalten. Route, Ausrüstung und Item-Häkchen dieser Edition beginnen neu.": "Your shared Pokédex is preserved. This version’s route, equipment and item checkboxes start fresh.",
+  "Reise beginnen": "Begin journey",
+  "Beim Start werden Route, Ausrüstung und Item-Häkchen dieser Edition zurückgesetzt. Deine gefangenen Pokémon und die andere Edition bleiben erhalten.": "Starting resets this version’s route, equipment and item checkboxes. Your caught Pokémon and the other version are preserved.",
+  "Vorher Sicherung speichern": "Save a backup first",
+  "Editionsfortschritt zurücksetzen & starten": "Reset version progress & start",
+  "Zurück": "Back"
 }

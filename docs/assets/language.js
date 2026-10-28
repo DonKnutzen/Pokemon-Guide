@@ -1,6 +1,6 @@
 // Curated, local translations. Progress keys, save IDs and input values never change.
 import ui from '../data/en-ui.json' with {type:'json'};
-import frlg from '../data/en-frlg.json' with {type:'json'};
+import frlg from '../data/en-frlg.json?v=11' with {type:'json'};
 import names from '../data/en-names.json' with {type:'json'};
 export const dictionary={...ui,...frlg,...names};
 const KEY='pokeguide:language';

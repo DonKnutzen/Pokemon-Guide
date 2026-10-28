@@ -1,4 +1,4 @@
-import {languageControl,getLanguage} from './language.js?v=10';
+import {languageControl,getLanguage} from './language.js?v=11';
 import {games,series,gameById,seriesById} from '../data/catalog.js?v=9';
 import {speciesIndex} from '../data/species-index.js';
 import {caughtIn,allCaught,catchRecord,markCaught,hasProgress,importLibrary} from './platform-model.js?v=9';
